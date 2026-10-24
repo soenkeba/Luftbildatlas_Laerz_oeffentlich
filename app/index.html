@@ -131,7 +131,7 @@ table.q td:first-child,table.q th:first-child{text-align:left}
   <aside class="panel">
     <div class="phead">
       <h1>Luftbildatlas Lärz</h1>
-      <p>Ehemaliger Fliegerhorst Lärz (heute Müritz Airpark) &ndash; historische und aktuelle Karten im Vergleich. Luftaufklärung vom 11.04.1945, Luftbilder 1953 und 1991, Messtischblatt, Geländemodell, OpenStreetMap und Satellitenbilder. ETRS89 / UTM 33N.</p>
+      <p>Ehemaliger Fliegerhorst Lärz (heute Müritz Airpark) &ndash; historische und aktuelle Karten im Vergleich. Luftaufklärung vom 11.04.1945, Luftbilder 1953 und 1991, Messtischblatt, Geländemodell, basemap.de und Satellitenbilder. ETRS89 / UTM 33N.</p>
     </div>
     <div class="pbody">
       <div class="sec"><h2>Ebenen</h2><div id="layers"></div></div>
@@ -171,14 +171,14 @@ table.q td:first-child,table.q th:first-child{text-align:left}
         <h2>Anleitung</h2>
         <div class="note" style="line-height:1.6">
           <b>Karte bewegen</b> &ndash; Maus ziehen oder mit zwei Fingern wischen. Mausrad oder Pinch zum Zoomen.<br>
-          <b>Ebenen</b> &ndash; Im Abschnitt oben k&ouml;nnen Kartenebenen per Checkbox ein- und ausgeblendet werden. Der Schieberegler steuert die Durchsichtigkeit. &uuml;ber <b>&uarr;&darr;</b> &auml;ndern Sie die Zeichenreihenfolge, &uuml;ber <b>i</b> sehen Sie die Herkunft der Daten.<br>
+          <b>Ebenen</b> &ndash; Im Abschnitt oben k&ouml;nnen Kartenebenen per Checkbox ein- und ausgeblendet werden. Der Schieberegler steuert die Durchsichtigkeit. &Uuml;ber <b>&uarr;&darr;</b> &auml;ndern Sie die Zeichenreihenfolge, &uuml;ber <b>i</b> sehen Sie die Herkunft der Daten.<br>
           <b>Anpassen</b> &ndash; Bei einigen Ebenen (1945, 1953, 1991) kann die Position manuell korrigiert werden: Klicken Sie &bdquo;Anpassen&ldquo; und verschieben Sie mit den Reglern oder Pfeiltasten.<br>
           <b>Messen</b> &ndash; Klicken Sie &bdquo;Messen&ldquo; in der Werkzeugleiste (oder Taste <b>M</b>). Klicken Sie auf die Karte um Messpunkte zu setzen &ndash; die Entfernung zwischen den Punkten wird in Metern angezeigt. Doppelklick beendet die Messung.<br>
           <b>Markieren</b> &ndash; Klicken Sie &bdquo;Markieren&ldquo; (oder Taste <b>P</b>) und setzen Sie Punkte auf der Karte. Die UTM-Koordinaten werden am Punkt angezeigt.<br>
-          <b>Standort</b> &ndash; Auf Mobilger&auml;ten zeigt &bdquo;Standort&ldquo; Ihre GPS-Position als blauen Punkt auf der Karte. Erneutes Tippen zentriert die Karte auf Sie.<br>
+          <b>Standort</b> &ndash; Schaltet den blauen GPS-Punkt ein und zentriert die Karte einmal darauf. Nochmal tippen springt zur&uuml;ck zum Punkt; ist die Karte schon dort, schaltet das Tippen den Standort aus.<br>
           <b>Voreinstellungen</b> &ndash; Die Kn&ouml;pfe oben schalten schnell zwischen n&uuml;tzlichen Ebenen-Kombinationen um.<br>
           <b>Sitzung speichern</b> &ndash; Unter &bdquo;Sitzung speichern&ldquo; k&ouml;nnen Sie alle Einstellungen, Messungen und Marker als JSON-Datei herunterladen und sp&auml;ter oder auf einem anderen Ger&auml;t wiederherstellen.<br>
-          <b>Bild-Export</b> &ndash; Speichert den aktuellen Kartenausschnitt als PNG oder JPG.<br>
+          <b>Bild-Export</b> &ndash; Speichert den aktuellen Kartenausschnitt als PNG oder JPG. Google Satellite ist in der Datei nicht enthalten.<br>
           <b>Taste H</b> &ndash; Gedr&uuml;ckt halten blendet die 1945er Bilder kurz aus, um die darunterliegende Ebene zu sehen.<br>
           <b>Escape</b> &ndash; Bricht die aktuelle Messung ab oder schlie&szlig;t das Anpassen-Fenster.
         </div>
@@ -189,7 +189,7 @@ table.q td:first-child,table.q th:first-child{text-align:left}
           <button class="b" id="exp_png">PNG speichern</button>
           <button class="b" id="exp_jpg">JPG speichern</button>
         </div>
-        <p class="note">Exportiert den aktuellen Kartenausschnitt mit allen sichtbaren Ebenen und Messungen als Bilddatei.</p>
+        <p class="note">Exportiert den aktuellen Kartenausschnitt mit den sichtbaren Ebenen und Messungen. Google Satellite ist in der Datei nicht enthalten.</p>
       </div>
       <div class="sec">
         <h2>Sitzung speichern / laden</h2>
@@ -278,8 +278,9 @@ function buildGoogleTiles(container){
       const img=new Image();
       img.src=`https://mt${(tx+ty)%4}.google.com/vt/lyrs=s&x=${tx}&y=${ty}&z=${GZOOM}`;
       img.onerror=()=>{img.style.display='none'};
-      Object.assign(img.style,{position:'absolute',left:wTL.x+'px',top:wTL.y+'px',
-        width:(wBR.x-wTL.x)+'px',height:(wBR.y-wTL.y)+'px'});
+      const p=.5; // Überlappung gegen Tile-Lücken
+      Object.assign(img.style,{position:'absolute',left:(wTL.x-p)+'px',top:(wTL.y-p)+'px',
+        width:(wBR.x-wTL.x+2*p)+'px',height:(wBR.y-wTL.y+2*p)+'px'});
       img.alt='';img.draggable=false;
       container.appendChild(img);
     }
@@ -327,6 +328,9 @@ const LAYERS=[
    desc:'Zeigt die Umrisse (Clip-Bereiche) der drei Luftaufklärungsbilder von 1945.'}
 ];
 LAYERS.forEach(L=>{const s=store[L.id];if(s){L.on=s.on??L.on;L.op=s.op??L.op;L.a=s.a}L.a=L.a||{dx:0,dy:0,rot:0,sc:100}});
+try{const ord=store._order;if(Array.isArray(ord)){
+  LAYERS.sort((a,b)=>{const ai=ord.indexOf(a.id),bi=ord.indexOf(b.id);return(ai===-1?999:ai)-(bi===-1?999:bi)});
+}}catch(e){}
 
 // ── Layer-DOM aufbauen ────────────────────────────────────────────────
 function centerOf(L){
@@ -384,13 +388,9 @@ function moveLayer(L,dir){
   const i=LAYERS.indexOf(L),j=i+dir;
   if(j<0||j>=LAYERS.length)return;
   [LAYERS[i],LAYERS[j]]=[LAYERS[j],LAYERS[i]];
-  rebuildLayerOrder();persistOrder();toast(L.name+(dir<0?' nach oben':' nach unten'));
+  rebuildLayerOrder();persistOrder();toast(L.name+(dir>0?' nach oben':' nach unten'));
 }
 function persistOrder(){store._order=LAYERS.map(L=>L.id);save()}
-// Reihenfolge aus localStorage wiederherstellen
-try{const ord=store._order;if(ord&&Array.isArray(ord)){
-  LAYERS.sort((a,b)=>{const ai=ord.indexOf(a.id),bi=ord.indexOf(b.id);return(ai===-1?999:ai)-(bi===-1?999:bi)});
-}}catch(e){}
 
 LAYERS.slice().reverse().forEach(L=>{
   const r=document.createElement('div');r.className='row';L.row=r;
@@ -607,6 +607,30 @@ document.querySelectorAll('[data-preset]').forEach(b=>b.onclick=()=>{const p=PRE
   toast(b.textContent)});
 
 // ── Export ─────────────────────────────────────────────────────────────
+// Canvas kennt nur affine Transforms. Die 1945er Homographien sind projektiv,
+// deshalb wird jedes Bild in ein Gitter aus affinen Zellen zerlegt.
+function drawFrameProjective(ctx,img,H,clip){
+  const x0=clip[0],y0=clip[1],x1=clip[2],y1=clip[3];
+  const cols=12,rows=12,pad=.75;
+  const dw=(x1-x0)/cols,dh=(y1-y0)/rows;
+  const iw=img.naturalWidth||img.width,ih=img.naturalHeight||img.height;
+  for(let j=0;j<rows;j++){
+    for(let i=0;i<cols;i++){
+      const sx=x0+i*dw,sy=y0+j*dh;
+      const p00=applyH(H,sx,sy),p10=applyH(H,sx+dw,sy),p01=applyH(H,sx,sy+dh);
+      const a=(p10[0]-p00[0])/dw,b=(p10[1]-p00[1])/dw;
+      const c=(p01[0]-p00[0])/dh,d=(p01[1]-p00[1])/dh;
+      const e=p00[0]-a*sx-c*sy,f=p00[1]-b*sx-d*sy;
+      const ssx=Math.max(0,sx-pad),ssy=Math.max(0,sy-pad);
+      const sw=Math.min(iw,sx+dw+pad)-ssx,sh=Math.min(ih,sy+dh+pad)-ssy;
+      if(sw<=0||sh<=0)continue;
+      ctx.save();
+      ctx.transform(a,b,c,d,e,f);
+      ctx.drawImage(img,ssx,ssy,sw,sh,ssx,ssy,sw,sh);
+      ctx.restore();
+    }
+  }
+}
 function exportImage(fmt){
   const dpr=window.devicePixelRatio||1;
   const cw=view.clientWidth,ch=view.clientHeight;
@@ -628,9 +652,7 @@ function exportImage(fmt){
       const f=D.frames[L.id],H=f.H,cl=f.clip;
       ctx.save();
       if(L.adj){const a=L.a,[cx,cy]=centerOf(L);ctx.translate(cx+a.dx,cy+a.dy);ctx.rotate(a.rot*Math.PI/180);ctx.scale(a.sc/100,a.sc/100);ctx.translate(-cx,-cy)}
-      ctx.transform(H[0][0],H[1][0],H[0][1],H[1][1],H[0][2],H[1][2]);
-      ctx.beginPath();ctx.rect(cl[0],cl[1],cl[2]-cl[0],cl[3]-cl[1]);ctx.clip();
-      ctx.drawImage(L._img,0,0);ctx.restore();
+      drawFrameProjective(ctx,L._img,H,cl);ctx.restore();
     }
   }
   ctx.globalAlpha=1;
@@ -644,7 +666,7 @@ function exportImage(fmt){
     c.toBlob(blob=>{
       const a=document.createElement('a');a.download=`luftbildatlas_laerz.${fmt}`;
       a.href=URL.createObjectURL(blob);a.click();URL.revokeObjectURL(a.href);
-      toast('Export gespeichert');
+      toast(LAYERS.some(L=>L.on&&L.kind==='google')?'Export gespeichert. Google Satellite ist nicht enthalten.':'Export gespeichert');
     },fmt==='jpg'?'image/jpeg':'image/png',0.95);
     URL.revokeObjectURL(url);
   };
@@ -693,7 +715,7 @@ function applySession(s){
     if(ordered.length>0){
       const idOrder=ordered.map(([id])=>id);
       LAYERS.sort((a,b)=>{const ai=idOrder.indexOf(a.id),bi=idOrder.indexOf(b.id);return(ai===-1?999:ai)-(bi===-1?999:bi)});
-      rebuildLayerOrder();
+      rebuildLayerOrder();persistOrder();
     }
   }
   // Messungen + Marker
@@ -701,7 +723,11 @@ function applySession(s){
   if(s.marker){markers=s.marker}
   persistAnno();
   // Ansicht
-  if(s.ansicht){z=s.ansicht.zoom||z;tx=s.ansicht.tx||tx;ty=s.ansicht.ty||ty}
+  if(s.ansicht){
+    if(Number.isFinite(s.ansicht.zoom))z=s.ansicht.zoom;
+    if(Number.isFinite(s.ansicht.tx))tx=s.ansicht.tx;
+    if(Number.isFinite(s.ansicht.ty))ty=s.ansicht.ty;
+  }
   drawFoot();syncAdj();render();
   toast('Sitzung geladen ('+new Date(s.datum).toLocaleDateString('de')+')');
 }
@@ -752,8 +778,12 @@ function toggleGPS(){
         toast(`GPS: ${gpsAcc.toFixed(0)} m Genauigkeit`);
       }
     },
-    err=>{toast('GPS-Fehler: '+(err.code===1?'Zugriff verweigert':err.code===2?'Nicht verfügbar':'Timeout'));
-      btn.classList.remove('on');gpsWatch=null;gpsCentered=false},
+    err=>{
+      if(gpsWatch!==null)navigator.geolocation.clearWatch(gpsWatch);
+      gpsWatch=null;gpsPos=null;gpsAcc=null;gpsCentered=false;
+      btn.classList.remove('on');renderAnnotations();
+      toast('GPS-Fehler: '+(err.code===1?'Zugriff verweigert':err.code===2?'Nicht verfügbar':'Timeout'));
+    },
     {enableHighAccuracy:true,maximumAge:5000,timeout:15000}
   );
 }

@@ -2,9 +2,9 @@
 Arbeitsgebiet: E 348600–351000, N 5906700–5909100 (EPSG:25833), 2400 × 2400 m.
 Ausgabe nach app/. Alle Dienste sind frei nutzbar (CC BY 4.0 bzw. dl-de/by-2-0).
 
-Nutzung:
-  python3 fetch_geobasis.py          # Alles herunterladen
-  python3 fetch_geobasis.py --update  # Nur Satellitenbilder aktualisieren (Sentinel-2)
+Nutzung (aus dem Projektordner):
+  python3 skripte/fetch_geobasis.py           # Alles herunterladen
+  python3 skripte/fetch_geobasis.py --update  # Nur Sentinel-2 aktualisieren
 """
 import subprocess, os, sys
 
@@ -67,4 +67,4 @@ for year in S2_YEARS:
 
 print("\nFertig. Bilder liegen in app/.")
 if not UPDATE_ONLY:
-    print("Tipp: 'python3 fetch_geobasis.py --update' lädt nur die Sentinel-2-Bilder neu.")
+    print("Tipp: 'python3 skripte/fetch_geobasis.py --update' lädt nur die Sentinel-2-Bilder neu.")

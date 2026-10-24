@@ -80,7 +80,7 @@ Benötigt nur `curl` und Python 3. Die WMS-Dienste sind frei zugänglich.
 - Entfernungen messen (Klick-Klick-Doppelklick)
 - Punkte markieren mit UTM-Koordinaten
 - Koordinatenanzeige: UTM + WGS84 Lat/Lon
-- Export als PNG/JPG mit allen sichtbaren Ebenen und Messungen
+- Export als PNG/JPG mit den sichtbaren Ebenen und Messungen (ohne Google Satellite)
 - Voreinstellungen: "1945 über heute", "1945 gegen 1953", "1991 (Wende)", "Messtischblatt + 1945"
 - Tastatur: H = 1945-Bilder ausblenden, M = Messen, P = Markieren, ESC = zurück
 
