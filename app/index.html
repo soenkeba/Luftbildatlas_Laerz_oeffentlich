@@ -81,12 +81,14 @@ table.q td:first-child,table.q th:first-child{text-align:left}
 @media(max-width:760px){
   .app{grid-template-columns:1fr;grid-template-rows:1fr auto}
   .panel{border-left:none;border-top:1px solid var(--line);max-height:55vh;transition:max-height .3s ease}
-  .panel.collapsed{max-height:48px;overflow:hidden}
+  .panel.collapsed{max-height:52px;overflow:hidden}
   .panel.collapsed .pbody{display:none}
-  .phead{cursor:pointer;-webkit-tap-highlight-color:transparent;padding:10px 16px 8px;position:relative}
-  .phead::after{content:'';position:absolute;top:4px;left:50%;transform:translateX(-50%);width:32px;height:4px;background:var(--line);border-radius:2px}
+  .panel.collapsed .phead .pull-hint{display:block}
+  .phead{cursor:pointer;-webkit-tap-highlight-color:transparent;padding:12px 16px 8px;position:relative}
+  .phead::after{content:'';position:absolute;top:5px;left:50%;transform:translateX(-50%);width:40px;height:5px;background:var(--accent);border-radius:3px;opacity:.7}
   .phead h1{font-size:18px}
   .phead p{display:none}
+  .pull-hint{display:none;color:var(--muted);font-size:11px;margin-top:2px}
   .tools{gap:3px;left:6px;top:6px}
   .tools button{height:40px;min-width:40px;font-size:13px;padding:0 8px;border-radius:8px}
   .zoom{right:6px;top:6px}
@@ -131,6 +133,7 @@ table.q td:first-child,table.q th:first-child{text-align:left}
   <aside class="panel">
     <div class="phead">
       <h1>Luftbildatlas Lärz</h1>
+      <div class="pull-hint">Antippen f&uuml;r Ebenen und Einstellungen &darr;</div>
       <p>Ehemaliger Fliegerhorst Lärz (heute Müritz Airpark) &ndash; historische und aktuelle Karten im Vergleich. Luftaufklärung vom 11.04.1945, Luftbilder 1953 und 1991, Messtischblatt, Geländemodell, basemap.de und Satellitenbilder. ETRS89 / UTM 33N.</p>
     </div>
     <div class="pbody">
@@ -205,7 +208,8 @@ table.q td:first-child,table.q th:first-child{text-align:left}
           <button class="b pri" id="sess_save">Sitzung als JSON speichern</button>
           <button class="b" id="sess_load">Sitzung aus JSON laden</button>
           <button class="b" id="export">Anpassungen kopieren</button>
-          <button class="b" id="resetall">Alle zur&uuml;cksetzen</button>
+          <button class="b" id="resetall">Verschiebungen zur&uuml;cksetzen</button>
+          <button class="b" id="resetfull">Alles auf Werkseinstellung</button>
         </div>
         <input type="file" id="sess_file" accept=".json,application/json" hidden>
         <textarea id="exportbox" hidden readonly style="width:100%;height:60px;margin-top:6px;font-family:var(--f-mono);font-size:11px"></textarea>
@@ -271,16 +275,25 @@ function buildGoogleTiles(container){
   container.innerHTML='';
   const nw=worldToLL(0,0),se=worldToLL(W,W);
   const tNW=llToTile(nw.lat,nw.lon,GZOOM),tSE=llToTile(se.lat,se.lon,GZOOM);
+  // Gemeinsame Kante je Meridian/Breite, sonst bleibt zwischen den Rechtecken
+  // eine Lücke von mehreren Metern (UTM-Konvergenz, hier rund 6 m).
+  const xAt=(tx,ty)=>{
+    const top=tileToLL(tx,ty,GZOOM),bot=tileToLL(tx,ty+1,GZOOM);
+    return llToWorld((top.lat+bot.lat)/2,top.lon).x;
+  };
+  const yAt=(tx,ty)=>{
+    const left=tileToLL(tx,ty,GZOOM),right=tileToLL(tx+1,ty,GZOOM);
+    return llToWorld(left.lat,(left.lon+right.lon)/2).y;
+  };
+  const pad=.4;
   for(let tx=Math.floor(tNW.x);tx<=Math.floor(tSE.x);tx++)
     for(let ty=Math.floor(tNW.y);ty<=Math.floor(tSE.y);ty++){
-      const tl=tileToLL(tx,ty,GZOOM),br=tileToLL(tx+1,ty+1,GZOOM);
-      const wTL=llToWorld(tl.lat,tl.lon),wBR=llToWorld(br.lat,br.lon);
+      const x0=xAt(tx,ty),x1=xAt(tx+1,ty),y0=yAt(tx,ty),y1=yAt(tx,ty+1);
       const img=new Image();
       img.src=`https://mt${(tx+ty)%4}.google.com/vt/lyrs=s&x=${tx}&y=${ty}&z=${GZOOM}`;
       img.onerror=()=>{img.style.display='none'};
-      const p=.5; // Überlappung gegen Tile-Lücken
-      Object.assign(img.style,{position:'absolute',left:(wTL.x-p)+'px',top:(wTL.y-p)+'px',
-        width:(wBR.x-wTL.x+2*p)+'px',height:(wBR.y-wTL.y+2*p)+'px'});
+      Object.assign(img.style,{position:'absolute',left:(x0-pad)+'px',top:(y0-pad)+'px',
+        width:(x1-x0+2*pad)+'px',height:(y1-y0+2*pad)+'px'});
       img.alt='';img.draggable=false;
       container.appendChild(img);
     }
@@ -755,7 +768,12 @@ sessFile.onchange=e=>{
 document.getElementById('export').onclick=()=>{const o={};LAYERS.filter(L=>L.adj).forEach(L=>{const a=L.a;if(a.dx||a.dy||a.rot||a.sc!==100)o[L.id]={ost_m:+a.dx.toFixed(2),nord_m:+(-a.dy).toFixed(2),drehung_grad:a.rot,massstab_proz:a.sc}});
   const t=JSON.stringify(o,null,1)||'{}';const box=document.getElementById('exportbox');box.value=Object.keys(o).length?t:'Keine Anpassungen.';box.hidden=false;
   navigator.clipboard?.writeText(box.value).then(()=>toast('In die Zwischenablage kopiert'),()=>{box.select();toast('Text markiert, bitte kopieren')})};
-document.getElementById('resetall').onclick=()=>{LAYERS.forEach(L=>{L.a={dx:0,dy:0,rot:0,sc:100};applyLayer(L);persist(L)});drawFoot();syncAdj();toast('Alle Anpassungen zurückgesetzt')};
+document.getElementById('resetall').onclick=()=>{LAYERS.forEach(L=>{L.a={dx:0,dy:0,rot:0,sc:100};applyLayer(L);persist(L)});drawFoot();syncAdj();toast('Verschiebungen zurückgesetzt')};
+document.getElementById('resetfull').onclick=()=>{
+  if(!confirm('Alle Einstellungen, Messungen und Marker auf Werkseinstellung zurücksetzen?'))return;
+  try{localStorage.removeItem(LS)}catch(e){}
+  location.reload();
+};
 
 // ── GPS-Standort ──────────────────────────────────────────────────────
 let gpsWatch=null,gpsPos=null,gpsAcc=null,gpsCentered=false;
