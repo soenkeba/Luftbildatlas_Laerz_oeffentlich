@@ -25,7 +25,7 @@ python3 -m http.server 8080
 ### Historische Luftbilder
 | Ebene | Quelle | Auflösung | Lizenz |
 |---|---|---|---|
-| Luftbild 1991 | DOP CIR-Infrarot, GeoBasis-DE/M-V | 0,4 m/px | CC BY 4.0 |
+| Luftbild 1991 | DOP CIR-Infrarot, GeoBasis-DE/M-V | 0,6 m/px | CC BY 4.0 |
 | Luftbild 1953 | DOP, GeoBasis-DE/M-V | 1,0 m/px | CC BY 4.0 |
 | 1945 Frames 3054, 4071, 4053 | NCAP, Sortie US7/0094/C | 0,18-0,20 m/px | (C) NCAP |
 
@@ -86,7 +86,7 @@ Benötigt nur `curl` und Python 3. Die WMS-Dienste sind frei zugänglich.
 
 ## Entstehung
 
-Dieses Projekt entstand als Werkzeug zur Untersuchung der historischen Nutzung des Fliegerhorsts Lärz anhand georeferenzierter Luftbilder. Die Georeferenzierung der 1945er Aufnahmen wurde mit Python (OpenCV, NumPy, SciPy) durchgeführt (siehe `skripte/`). Der Ebenen-Viewer ist eine einzelne HTML-Datei ohne externe Abhängigkeiten.
+Dieses Projekt entstand als Werkzeug zur Untersuchung der historischen Nutzung des Fliegerhorsts Lärz anhand georeferenzierter Luftbilder. Die Georeferenzierung der 1945er Aufnahmen wurde mit Python (OpenCV, NumPy, SciPy) durchgeführt (siehe `skripte/`). Der Ebenen-Viewer ist eine einzelne HTML-Datei. Externe Abhängigkeiten zur Laufzeit: Google Fonts (Barlow, JetBrains Mono) und optional Google Maps Satellite Tiles.
 
 Erstellt von soenke.bartling@gmail.com mit Claude, Cursor und Grok.
 

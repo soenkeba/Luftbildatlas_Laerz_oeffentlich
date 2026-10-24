@@ -215,7 +215,7 @@ table.q td:first-child,table.q th:first-child{text-align:left}
         </table>
         <p class="note">Passpunkte automatisch per Bildkorrelation gegen das Luftbild 1953 (Bahnen, Rollwege, Kanal). Verknüpfungspunkte zwischen Bildern desselben Flugs. Projektiv entzerrt (RANSAC). Die heutige Startbahn wurde nach 1945 umgebaut und passt deshalb nicht 1:1.</p>
       </div>
-      <div class="sec note">Quellen: NCAP (US7/0094/C, Frames 3054, 4053, 4071; &copy; National Collection of Aerial Photography) &middot; DOP, DOP 1953, DOP 1991, ALKIS, TK25, DTK25, DGM &copy; GeoBasis-DE/M-V (CC BY 4.0) &middot; TopPlusOpen, Sentinel-2 &copy; BKG (dl-de/by-2-0) &middot; basemap.de &copy; BKG / OSM-Mitwirkende &middot; Google Satellite &copy; Google. Keine Kampfmittelauskunft &ndash; für Bauvorhaben gilt allein die Auskunft des MBES M-V.</div>
+      <div class="sec note">Quellen: NCAP (US7/0094/C, Frames 3054, 4053, 4071; &copy; National Collection of Aerial Photography) &middot; DOP, DOP 1953, DOP 1991, ALKIS, TK25, DTK25, DGM &copy; GeoBasis-DE/M-V (CC BY 4.0) &middot; TopPlusOpen, Sentinel-2 &copy; BKG (dl-de/by-2-0) &middot; basemap.de &copy; BKG / OSM-Mitwirkende &middot; Google Satellite &copy; Google. Keine Kampfmittelauskunft &ndash; für Bauvorhaben gilt allein die Auskunft des MBD M-V (LPBK M-V).</div>
       <div class="sec note" style="margin-top:8px;border-top:1px solid var(--line);padding-top:8px">Erstellt von soenke.bartling@gmail.com mit Claude, Cursor und Grok.</div>
     </div>
   </aside>
@@ -286,21 +286,21 @@ const LAYERS=[
   {id:'heute',name:'Luftbild heute',sub:'DOP M-V, 0.6 m/px',src:'dop_heute.jpg',kind:'full',on:true,op:1,adj:false,sw:'#6a8f4e',
    desc:'Digitales Orthophoto des Landes M-V, aus aktueller Befliegung des LAiV. 0,6 m/px. Amtlich georeferenziert, Lagegenauigkeit besser als 0,5 m. Quelle: GeoBasis-DE/M-V (CC BY 4.0).'},
   {id:'s2_2024',name:'Sentinel-2 (2024)',sub:'BKG, 10 m/px',src:'sentinel2_2024.jpg',kind:'full',on:false,op:1,adj:false,sw:'#2e7d32',
-   desc:'ESA-Satellit Sentinel-2, Jahresmosaik 2024 des BKG. 10 m Bodenauflösung. Aktualisierbar per: python3 fetch_geobasis.py --update. Quelle: BKG (dl-de/by-2-0).'},
+   desc:'ESA-Satellit Sentinel-2, Jahresmosaik 2024 des BKG. 10 m Bodenauflösung. Aktualisierbar per: python3 skripte/fetch_geobasis.py --update (aus dem Repo-Wurzelverzeichnis). Quelle: BKG (dl-de/by-2-0).'},
   {id:'s2_2022',name:'Sentinel-2 (2022)',sub:'BKG, 10 m/px',src:'sentinel2_2022.jpg',kind:'full',on:false,op:1,adj:false,sw:'#388e3c',
    desc:'Sentinel-2 Jahresmosaik 2022. 10 m Bodenauflösung. Quelle: BKG (dl-de/by-2-0).'},
   {id:'s2_2020',name:'Sentinel-2 (2020)',sub:'BKG, 10 m/px',src:'sentinel2_2020.jpg',kind:'full',on:false,op:1,adj:false,sw:'#43a047',
    desc:'Sentinel-2 Jahresmosaik 2020. 10 m Bodenauflösung. Quelle: BKG (dl-de/by-2-0).'},
   {id:'s2_2018',name:'Sentinel-2 (2018)',sub:'BKG, 10 m/px',src:'sentinel2_2018.jpg',kind:'full',on:false,op:1,adj:false,sw:'#4caf50',
    desc:'Sentinel-2 Jahresmosaik 2018 (frühestes verfügbares). 10 m Bodenauflösung. Quelle: BKG (dl-de/by-2-0).'},
-  {id:'osm',name:'OpenStreetMap',sub:'terrestris WMS',src:'osm.jpg',kind:'full',on:false,op:1,adj:false,sw:'#7eb852',
+  {id:'osm',name:'basemap.de / OSM',sub:'BKG',src:'osm.jpg',kind:'full',on:false,op:1,adj:false,sw:'#7eb852',
    desc:'basemap.de des BKG, basierend auf OpenStreetMap-Daten. Vektordaten, Genauigkeit variiert je nach Beitragenden. Quelle: BKG / OSM-Mitwirkende (dl-de/by-2-0).'},
   {id:'topo',name:'Topographische Karte',sub:'BKG TopPlusOpen',src:'topo_bkg.jpg',kind:'full',on:false,op:1,adj:false,sw:'#ff7043',
    desc:'TopPlusOpen des BKG: topographische Karte aus amtlichen Geobasisdaten aller Bundesländer. Mehrere Maßstabsebenen, hier bei 1:25.000. Quelle: BKG (dl-de/by-2-0).'},
   {id:'dtk25',name:'DTK25 aktuell',sub:'GeoBasis-DE/M-V',src:'dtk25.jpg',kind:'full',on:false,op:1,adj:false,sw:'#ff9800',
    desc:'Digitale Topographische Karte 1:25.000 des Landes M-V. Amtlich georeferenziert, aktueller Datenbestand. Quelle: GeoBasis-DE/M-V (CC BY 4.0).'},
   {id:'1991',name:'Luftbild 1991',sub:'DOP M-V, CIR-Infrarot',src:'dop_1991.jpg',kind:'full',on:false,op:1,adj:true,sw:'#78909c',
-   desc:'Historisches Orthophoto aus CIR-Infrarot-Befliegung 1990/91 (Falschfarben). 0,4 m/px. Zeigt den Flugplatz kurz nach der Wende, noch mit militärischer Infrastruktur. Amtlich georeferenziert. Quelle: GeoBasis-DE/M-V (CC BY 4.0).'},
+   desc:'Historisches Orthophoto aus CIR-Infrarot-Befliegung 1990/91 (Falschfarben). 0,6 m/px (hier heruntergeladen mit 4000 px auf 2400 m). Zeigt den Flugplatz kurz nach der Wende, noch mit militärischer Infrastruktur. Amtlich georeferenziert. Quelle: GeoBasis-DE/M-V (CC BY 4.0).'},
   {id:'1953',name:'Luftbild 1953',sub:'DOP M-V, s/w',src:'dop_1953.jpg',kind:'full',on:false,op:1,adj:true,sw:'#9a9a92',
    desc:'Historisches Orthophoto aus Befliegung 1953, Schwarzweiß. 1,0 m/px. Referenzbild für die Georeferenzierung der 1945er Aufnahmen (Bahnen und Rollwege noch identisch). Amtlich georeferenziert. Quelle: GeoBasis-DE/M-V (CC BY 4.0).'},
   {id:'3054',name:'1945 - Frame 3054',sub:'US7/0094/C',src:'f3054.jpg',kind:'frame',on:false,op:.85,adj:true,sw:'#d070d0',
@@ -378,8 +378,13 @@ function moveLayer(L,dir){
   const i=LAYERS.indexOf(L),j=i+dir;
   if(j<0||j>=LAYERS.length)return;
   [LAYERS[i],LAYERS[j]]=[LAYERS[j],LAYERS[i]];
-  rebuildLayerOrder();toast(L.name+(dir>0?' nach oben':' nach unten'));
+  rebuildLayerOrder();persistOrder();toast(L.name+(dir<0?' nach oben':' nach unten'));
 }
+function persistOrder(){store._order=LAYERS.map(L=>L.id);save()}
+// Reihenfolge aus localStorage wiederherstellen
+try{const ord=store._order;if(ord&&Array.isArray(ord)){
+  LAYERS.sort((a,b)=>{const ai=ord.indexOf(a.id),bi=ord.indexOf(b.id);return(ai===-1?999:ai)-(bi===-1?999:bi)});
+}}catch(e){}
 
 LAYERS.slice().reverse().forEach(L=>{
   const r=document.createElement('div');r.className='row';L.row=r;
@@ -398,8 +403,8 @@ LAYERS.slice().reverse().forEach(L=>{
   r.querySelector('input[type=range]').oninput=e=>{L.op=+e.target.value;applyLayer(L);persist(L)};
   if(L.adj)r.querySelector('.adj').onclick=()=>selectAdj(selected===L?null:L);
   r.querySelector('[data-info]').onclick=()=>{const d=document.getElementById(descId);d.hidden=!d.hidden};
-  r.querySelector('[data-up]').onclick=()=>moveLayer(L,-1); // -1 = weiter unten im Array = weiter oben gerendert
-  r.querySelector('[data-dn]').onclick=()=>moveLayer(L,1);
+  r.querySelector('[data-up]').onclick=()=>moveLayer(L,1);  // höherer Index = weiter oben gerendert = vorne
+  r.querySelector('[data-dn]').onclick=()=>moveLayer(L,-1);
 });
 LAYERS.forEach(applyLayer);drawFoot();
 
@@ -709,11 +714,11 @@ document.getElementById('export').onclick=()=>{const o={};LAYERS.filter(L=>L.adj
 document.getElementById('resetall').onclick=()=>{LAYERS.forEach(L=>{L.a={dx:0,dy:0,rot:0,sc:100};applyLayer(L);persist(L)});drawFoot();syncAdj();toast('Alle Anpassungen zurückgesetzt')};
 
 // ── GPS-Standort ──────────────────────────────────────────────────────
-let gpsWatch=null,gpsPos=null,gpsAcc=null;
+let gpsWatch=null,gpsPos=null,gpsAcc=null,gpsCentered=false;
 function toggleGPS(){
   const btn=document.getElementById('t_gps');
   if(gpsWatch!==null){
-    navigator.geolocation.clearWatch(gpsWatch);gpsWatch=null;gpsPos=null;gpsAcc=null;
+    navigator.geolocation.clearWatch(gpsWatch);gpsWatch=null;gpsPos=null;gpsAcc=null;gpsCentered=false;
     btn.classList.remove('on');renderAnnotations();toast('GPS deaktiviert');return;
   }
   if(!navigator.geolocation){toast('GPS nicht verfügbar');return}
@@ -723,22 +728,25 @@ function toggleGPS(){
       gpsPos=llToWorld(pos.coords.latitude,pos.coords.longitude);
       gpsAcc=pos.coords.accuracy||10;
       renderAnnotations();
-      // Beim ersten Fix auf Position zentrieren
-      if(!gpsPos._centered){
-        gpsPos._centered=true;
+      if(!gpsCentered){
+        gpsCentered=true;
         tx=view.clientWidth/2-gpsPos.x*z;ty=view.clientHeight/2-gpsPos.y*z;render();
         toast(`GPS: ${gpsAcc.toFixed(0)} m Genauigkeit`);
       }
     },
     err=>{toast('GPS-Fehler: '+(err.code===1?'Zugriff verweigert':err.code===2?'Nicht verfügbar':'Timeout'));
-      btn.classList.remove('on');gpsWatch=null},
+      btn.classList.remove('on');gpsWatch=null;gpsCentered=false},
     {enableHighAccuracy:true,maximumAge:5000,timeout:15000}
   );
 }
 document.getElementById('t_gps').onclick=()=>{
-  if(gpsWatch!==null&&gpsPos){
-    // Zweiter Klick: auf Position zentrieren
-    tx=view.clientWidth/2-gpsPos.x*z;ty=view.clientHeight/2-gpsPos.y*z;render();
+  if(gpsWatch!==null){
+    if(gpsPos){
+      // Bereits aktiv: auf Position zentrieren oder ausschalten
+      const cx=view.clientWidth/2-gpsPos.x*z,cy=view.clientHeight/2-gpsPos.y*z;
+      if(Math.abs(tx-cx)<2&&Math.abs(ty-cy)<2){toggleGPS();return} // schon zentriert → ausschalten
+      tx=cx;ty=cy;render();
+    } else toggleGPS(); // kein Fix → ausschalten
   } else toggleGPS();
 };
 
