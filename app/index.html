@@ -1,51 +1,72 @@
 <title>Luftbildatlas Lärz</title>
-<meta name="claude:viewport-fit-sides" content="cover">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Condensed:wght@500;600&family=JetBrains+Mono:wght@400;500&display=swap">
 <style>
-/* Layout: full-height map with a docked layer panel (right on desktop, bottom sheet on phones). Airfield-chart look: signal yellow on asphalt. */
 :root{
-  --bg:#eef0ec; --panel:#fbfbf8; --ink:#1d2321; --muted:#5d6763; --line:#cfd5d0;
-  --accent:#d9a400; --accent-ink:#1d2321; --sel:#fff4c9; --map:#c9cdc6;
+  --bg:#eef0ec;--panel:#fbfbf8;--ink:#1d2321;--muted:#5d6763;--line:#cfd5d0;
+  --accent:#d9a400;--accent-ink:#1d2321;--sel:#fff4c9;--map:#c9cdc6;
   --f-display:"Barlow Condensed","Arial Narrow",system-ui,sans-serif;
   --f-body:"Barlow",system-ui,-apple-system,"Segoe UI",sans-serif;
   --f-mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
 }
-@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#151918;--panel:#1d2221;--ink:#e6ebe7;--muted:#9aa6a1;--line:#343c3a;--accent:#f2c230;--accent-ink:#151918;--sel:#3a3418;--map:#0f1211;color-scheme:dark}}
-:root[data-theme="dark"]{--bg:#151918;--panel:#1d2221;--ink:#e6ebe7;--muted:#9aa6a1;--line:#343c3a;--accent:#f2c230;--accent-ink:#151918;--sel:#3a3418;--map:#0f1211;color-scheme:dark}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#151918;--panel:#1d2221;--ink:#e6ebe7;--muted:#9aa6a1;--line:#343c3a;--accent:#f2c230;--accent-ink:#151918;--sel:#3a3418;--map:#0f1211;color-scheme:dark}}
 [hidden]{display:none!important}
+*,*::before,*::after{box-sizing:border-box;margin:0}
 html,body{height:100%}
 body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:14px;overflow:hidden}
-.app{display:grid;grid-template-columns:1fr 340px;height:100%}
+.app{display:grid;grid-template-columns:1fr 360px;height:100%}
+/* Map view */
 #view{position:relative;overflow:hidden;background:var(--map);touch-action:none;cursor:grab}
 #view.drag{cursor:grabbing}
 #view.movelayer{cursor:move}
+#view.tool-active{cursor:crosshair}
 #world{position:absolute;left:0;top:0;width:2400px;height:2400px;transform-origin:0 0}
 .lyr{position:absolute;left:0;top:0;width:2400px;height:2400px;pointer-events:none}
 .lyr img{position:absolute;left:0;top:0;transform-origin:0 0;user-select:none;-webkit-user-drag:none;max-width:none}
 .lyr.full img{width:2400px;height:2400px}
-#vec{position:absolute;left:0;top:0;width:2400px;height:2400px;overflow:visible;pointer-events:none}
-.panel{background:var(--panel);border-left:1px solid var(--line);display:flex;flex-direction:column;min-height:0}
+/* Toolbar */
+.tools{position:absolute;left:10px;top:10px;display:flex;gap:4px;z-index:2}
+.tools button{height:32px;font-size:12px;font-weight:500;border-radius:6px;border:1px solid var(--line);background:var(--panel);color:var(--ink);cursor:pointer;padding:0 10px;font-family:var(--f-body)}
+.tools button.on{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.zoom{position:absolute;right:10px;top:10px;display:flex;flex-direction:column;gap:6px;z-index:2}
+.zoom button{width:36px;height:36px;font-size:18px;border-radius:6px;border:1px solid var(--line);background:var(--panel);color:var(--ink);cursor:pointer}
+/* HUD */
+.hud{position:absolute;left:max(10px,env(safe-area-inset-left,0px));bottom:10px;display:flex;gap:8px;align-items:flex-end;pointer-events:none;z-index:2}
+.chip{background:color-mix(in srgb,var(--panel) 88%,transparent);border:1px solid var(--line);border-radius:6px;padding:5px 8px;font-family:var(--f-mono);font-size:11px;line-height:1.4;pointer-events:auto}
+.chip small{display:block;color:var(--muted);font-size:10px}
+#scalebar{height:6px;border:2px solid var(--ink);border-top:none;margin-top:3px}
+#toast{position:absolute;top:50px;left:50%;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:6px 12px;border-radius:6px;font-size:13px;opacity:0;transition:opacity .2s;z-index:3}
+#toast.on{opacity:1}
+/* Panel */
+.panel{background:var(--panel);border-left:1px solid var(--line);display:flex;flex-direction:column;min-height:0;overflow:hidden}
 .phead{padding:14px 16px 10px;border-bottom:1px solid var(--line)}
-.phead h1{font-family:var(--f-display);font-weight:600;font-size:22px;letter-spacing:.02em;margin:0;text-wrap:balance}
+.phead h1{font-family:var(--f-display);font-weight:600;font-size:22px;letter-spacing:.02em}
 .phead p{margin:4px 0 0;color:var(--muted);font-size:13px;line-height:1.4}
-.pbody{overflow:auto;padding:8px 0 16px;flex:1;min-height:0}
+.pbody{overflow-y:auto;padding:8px 0 16px;flex:1;min-height:0}
 .sec{padding:8px 16px}
 .sec h2{font-family:var(--f-display);font-size:13px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:8px 0 6px}
-.row{display:grid;grid-template-columns:22px 1fr auto;align-items:center;gap:8px;padding:6px 8px;border-radius:6px}
+/* Layer rows */
+.row{display:grid;grid-template-columns:22px 1fr auto;align-items:center;gap:6px;padding:5px 8px;border-radius:6px;position:relative}
 .row.sel{background:var(--sel)}
 .row label{display:flex;flex-direction:column;min-width:0;cursor:pointer}
-.row .nm{font-weight:500}
-.row .sub{color:var(--muted);font-size:12px;font-family:var(--f-mono)}
-.row input[type=range]{grid-column:2/4;width:100%;accent-color:var(--accent)}
-.adj{font-size:12px;border:1px solid var(--line);background:transparent;color:var(--ink);border-radius:4px;padding:3px 7px;cursor:pointer;font-family:var(--f-body)}
-.adj[aria-pressed=true]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
-.sw{width:12px;height:12px;border-radius:2px;display:inline-block;margin-right:6px;vertical-align:-1px}
+.row .nm{font-weight:500;font-size:13px}
+.row .sub{color:var(--muted);font-size:11px;font-family:var(--f-mono)}
+.row input[type=range]{grid-column:1/4;width:100%;accent-color:var(--accent);margin:2px 0 0}
+.row .acts{display:flex;gap:4px;align-items:center}
+.adj,.ibtn{font-size:11px;border:1px solid var(--line);background:transparent;color:var(--ink);border-radius:4px;padding:2px 6px;cursor:pointer;font-family:var(--f-body)}
+.adj[aria-pressed=true],.ibtn.on{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.sw{width:10px;height:10px;border-radius:2px;display:inline-block;margin-right:5px;vertical-align:-1px}
+.ldesc{grid-column:1/4;font-size:11px;color:var(--muted);line-height:1.4;padding:4px 0 2px;border-top:1px dashed var(--line);margin-top:4px}
+.reord{display:flex;flex-direction:column;gap:1px}
+.reord button{width:18px;height:14px;font-size:9px;border:1px solid var(--line);background:transparent;color:var(--muted);cursor:pointer;border-radius:3px;padding:0;line-height:1}
+/* Adjust box */
 #adjbox{margin:4px 16px 8px;padding:10px 12px;border:1px solid var(--accent);border-radius:8px;display:grid;gap:8px}
 #adjbox .t{font-family:var(--f-display);font-weight:600;font-size:15px}
-.ctl{display:grid;grid-template-columns:78px 1fr 64px;gap:8px;align-items:center}
-.ctl span{color:var(--muted);font-size:12px}
+.ctl{display:grid;grid-template-columns:78px 1fr 60px;gap:6px;align-items:center}
+.ctl span{color:var(--muted);font-size:11px}
 .ctl input[type=range]{width:100%;accent-color:var(--accent)}
-.ctl input[type=number]{width:100%;font-family:var(--f-mono);font-size:12px;padding:3px 4px;background:var(--bg);color:var(--ink);border:1px solid var(--line);border-radius:4px}
+.ctl input[type=number]{width:100%;font-family:var(--f-mono);font-size:11px;padding:2px 4px;background:var(--bg);color:var(--ink);border:1px solid var(--line);border-radius:4px}
 .btns{display:flex;flex-wrap:wrap;gap:6px}
 button.b{font-family:var(--f-body);font-size:13px;padding:6px 10px;border-radius:6px;border:1px solid var(--line);background:var(--bg);color:var(--ink);cursor:pointer}
 button.b.pri{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);font-weight:600}
@@ -54,30 +75,28 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline
 table.q{width:100%;border-collapse:collapse;font-size:12px;font-variant-numeric:tabular-nums}
 table.q td,table.q th{padding:3px 4px;border-bottom:1px solid var(--line);text-align:right}
 table.q td:first-child,table.q th:first-child{text-align:left}
-.hud{position:absolute;left:max(10px,env(safe-area-inset-left,0px));bottom:10px;display:flex;gap:8px;align-items:flex-end;pointer-events:none}
-.chip{background:color-mix(in srgb,var(--panel) 88%,transparent);border:1px solid var(--line);border-radius:6px;padding:5px 8px;font-family:var(--f-mono);font-size:12px;pointer-events:auto}
-.zoom{position:absolute;right:10px;top:10px;display:flex;flex-direction:column;gap:6px}
-.zoom button{width:36px;height:36px;font-size:18px;border-radius:6px;border:1px solid var(--line);background:var(--panel);color:var(--ink);cursor:pointer}
-#scalebar{height:6px;border:2px solid var(--ink);border-top:none;margin-top:3px}
-#toast{position:absolute;top:10px;left:50%;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:6px 12px;border-radius:6px;font-size:13px;opacity:0;transition:opacity .2s}
-#toast.on{opacity:1}
-@media (max-width:760px){
+@media(max-width:760px){
   .app{grid-template-columns:1fr;grid-template-rows:55% 45%}
   .panel{border-left:none;border-top:1px solid var(--line)}
 }
-@media (prefers-reduced-motion:reduce){#toast{transition:none}}
+@media(prefers-reduced-motion:reduce){#toast{transition:none}}
 </style>
 
 <div class="app">
   <div id="view" aria-label="Karte">
     <div id="world"></div>
+    <div class="tools">
+      <button id="t_measure" title="Entfernungen messen (M)">Messen</button>
+      <button id="t_mark" title="Punkte setzen (P)">Markieren</button>
+      <button id="t_clear" title="Messungen und Markierungen entfernen">Entfernen</button>
+    </div>
     <div class="zoom">
       <button id="zin" aria-label="Hineinzoomen">+</button>
-      <button id="zout" aria-label="Herauszoomen">−</button>
-      <button id="zhome" aria-label="Auf Flugplatz zentrieren" title="Auf Flugplatz zentrieren">⌂</button>
+      <button id="zout" aria-label="Herauszoomen">&minus;</button>
+      <button id="zhome" title="Auf Flugplatz zentrieren">&loz;</button>
     </div>
     <div class="hud">
-      <div class="chip" id="coord">E — · N —</div>
+      <div class="chip" id="coord">E &mdash; &middot; N &mdash;</div>
       <div class="chip"><span id="scalelbl">100 m</span><div id="scalebar" style="width:100px"></div></div>
     </div>
     <div id="toast" role="status"></div>
@@ -86,7 +105,7 @@ table.q td:first-child,table.q th:first-child{text-align:left}
   <aside class="panel">
     <div class="phead">
       <h1>Luftbildatlas Lärz</h1>
-      <p>Ehemaliger Fliegerhorst Lärz (heute Müritz Airpark) · Aufklärung US7/0094/C vom 11.04.1945, einen Tag nach dem Angriff der 8th Air Force, über Luftbild 1953 und heute. ETRS89 / UTM 33.</p>
+      <p>Ehemaliger Fliegerhorst Lärz (heute Müritz Airpark) &ndash; historische und aktuelle Karten im Vergleich. Luftaufklärung vom 11.04.1945, Luftbilder 1953 und 1991, Messtischblatt, Geländemodell, OpenStreetMap und Satellitenbilder. ETRS89 / UTM 33N.</p>
     </div>
     <div class="pbody">
       <div class="sec"><h2>Ebenen</h2><div id="layers"></div></div>
@@ -94,7 +113,7 @@ table.q td:first-child,table.q th:first-child{text-align:left}
         <div class="t" id="adjtitle">Ebene anpassen</div>
         <div class="ctl"><span>Ost/West (m)</span><input type="range" id="r_dx" min="-150" max="150" step="0.5"><input type="number" id="n_dx" step="0.5"></div>
         <div class="ctl"><span>Nord/Süd (m)</span><input type="range" id="r_dy" min="-150" max="150" step="0.5"><input type="number" id="n_dy" step="0.5"></div>
-        <div class="ctl"><span>Drehung (°)</span><input type="range" id="r_rot" min="-15" max="15" step="0.05"><input type="number" id="n_rot" step="0.05"></div>
+        <div class="ctl"><span>Drehung (&deg;)</span><input type="range" id="r_rot" min="-15" max="15" step="0.05"><input type="number" id="n_rot" step="0.05"></div>
         <div class="ctl"><span>Maßstab (%)</span><input type="range" id="r_sc" min="80" max="120" step="0.1"><input type="number" id="n_sc" step="0.1"></div>
         <div class="btns">
           <button class="b" id="dragmode" aria-pressed="false">Mit Maus ziehen</button>
@@ -108,85 +127,163 @@ table.q td:first-child,table.q th:first-child{text-align:left}
         <div class="btns">
           <button class="b" data-preset="1945">1945 über heute</button>
           <button class="b" data-preset="1953">1945 gegen 1953</button>
-                    <button class="b" data-preset="heute">Nur heute</button>
+          <button class="b" data-preset="1991">1991 (Wende)</button>
+          <button class="b" data-preset="messtisch">Messtischblatt + 1945</button>
+          <button class="b" data-preset="heute">Nur heute</button>
         </div>
-        <p class="note">Taste <b>H</b> gedrückt halten blendet die Bilder von 1945 kurz aus.</p>
+        <p class="note" style="margin-top:6px">Taste <b>H</b> gedrückt halten blendet die Bilder von 1945 kurz aus.</p>
       </div>
       <div class="sec">
-        <h2>Genauigkeit der Ausrichtung</h2>
+        <h2>Export</h2>
+        <div class="btns">
+          <button class="b" id="exp_png">PNG speichern</button>
+          <button class="b" id="exp_jpg">JPG speichern</button>
+          <button class="b" id="export">Anpassungen kopieren</button>
+          <button class="b" id="resetall">Alle zurücksetzen</button>
+        </div>
+        <textarea id="exportbox" hidden readonly style="width:100%;height:60px;margin-top:6px;font-family:var(--f-mono);font-size:11px"></textarea>
+        <p class="note">Exportiert den aktuellen Kartenausschnitt mit allen sichtbaren Ebenen und Messungen. Eigene Verschiebungen bleiben in diesem Browser gespeichert.</p>
+      </div>
+      <div class="sec">
+        <h2>Genauigkeit</h2>
         <table class="q">
-          <tr><th>Bild</th><th>Passpunkte</th><th>Restfehler</th><th>m/Pixel*</th></tr>
-          <tr><td>3054</td><td>71 + Verknüpf.</td><td>1,8 m</td><td>0,195</td></tr>
-          <tr><td>4071</td><td>29 + Verknüpf.</td><td>2,9 m</td><td>0,183</td></tr>
-          <tr><td>4053</td><td>105 + 1.280</td><td>2,5 m</td><td>0,194</td></tr>
+          <tr><th>Bild</th><th>Passpunkte</th><th>Restfehler</th><th>m/px</th></tr>
+          <tr><td>3054</td><td>71 + Verkn.</td><td>1,8 m</td><td>0,195</td></tr>
+          <tr><td>4071</td><td>29 + Verkn.</td><td>2,9 m</td><td>0,183</td></tr>
+          <tr><td>4053</td><td>105 + 1280</td><td>2,5 m</td><td>0,194</td></tr>
         </table>
-        <p class="note">Passpunkte automatisch per Bildkorrelation gegen das Luftbild 1953 (Bahnen, Rollwege, Straßen, Kanal), Verknüpfungspunkte zwischen den Bildern vom selben Flug (Abweichung 3054↔4071 im Mittel 1,8 m, 4053↔4071 1,5 m), projektiv entzerrt. *im Originalscan. Die heutige Startbahn wurde nach 1945 umgebaut und passt deshalb nicht 1:1.</p>
+        <p class="note">Passpunkte automatisch per Bildkorrelation gegen das Luftbild 1953 (Bahnen, Rollwege, Kanal). Verknüpfungspunkte zwischen Bildern desselben Flugs. Projektiv entzerrt (RANSAC). Die heutige Startbahn wurde nach 1945 umgebaut und passt deshalb nicht 1:1.</p>
       </div>
-      <div class="sec">
-        <h2>Anpassungen</h2>
-        <div class="btns"><button class="b" id="export">Werte kopieren</button><button class="b" id="resetall">Alle zurücksetzen</button></div>
-        <textarea id="exportbox" hidden readonly style="width:100%;height:90px;margin-top:6px;font-family:var(--f-mono);font-size:11px"></textarea>
-        <p class="note">Eigene Verschiebungen bleiben in diesem Browser gespeichert.</p>
-      </div>
-      <div class="sec note">Quellen: NCAP Air Photo Finder (US7/0094/C, Frames 3054, 4053, 4071; © National Collection of Aerial Photography) · DOP M-V und DOP 1953 © GeoBasis-DE/M-V (CC BY 4.0) · ALKIS © GeoBasis-DE/M-V (CC BY 4.0). Keine Kampfmittelauskunft – für Bauvorhaben gilt allein die Auskunft des Munitionsbergungsdienstes M-V.</div>
+      <div class="sec note">Quellen: NCAP (US7/0094/C, Frames 3054, 4053, 4071; &copy; National Collection of Aerial Photography) &middot; DOP, DOP 1953, DOP 1991, ALKIS, TK25, DTK25, DGM &copy; GeoBasis-DE/M-V (CC BY 4.0) &middot; TopPlusOpen, Sentinel-2 &copy; BKG (dl-de/by-2-0) &middot; basemap.de &copy; BKG / OSM-Mitwirkende &middot; Google Satellite &copy; Google. Keine Kampfmittelauskunft &ndash; für Bauvorhaben gilt allein die Auskunft des MBES M-V.</div>
+      <div class="sec note" style="margin-top:8px;border-top:1px solid var(--line);padding-top:8px">Erstellt von soenke.bartling@gmail.com mit Claude, Cursor und Grok.</div>
     </div>
   </aside>
 </div>
 
 <script>
-const D={"frames": {"4071": {"w": 3907, "h": 4000, "H": [[0.2775551976335041, -0.2398043009421563, 1539.1153396668526], [0.23774214595057017, 0.28466585912424636, -295.54922803133263], [3.033069948012005e-06, -3.53271600096826e-06, 1.0]], "clip": [320, 240, 3690, 3615]}, "4053": {"w": 4000, "h": 3907, "H": [[0.2825046883051741, -0.23215000865109067, 1541.3039070978004], [0.20953070539388824, 0.2923342208696238, 639.0608963378667], [-1.2119405421321635e-05, -2.8086918949386513e-06, 1.0]], "clip": [235, 260, 3615, 3570]}, "3054": {"w": 4000, "h": 3907, "H": [[0.3160045177905764, -0.23942095431426627, 430.35614749391937], [0.24756108965172538, 0.30314710376242976, -191.01063050355384], [7.874872346411879e-06, -4.41056866739144e-06, 1.0]], "clip": [260, 210, 3615, 3590]}}};
-const LS='laerz-atlas-public-v1';
-const W=2400; // world: 1 unit = 1 m; x = E-348600, y = 5909100-N
-const view=document.getElementById('view'), world=document.getElementById('world');
-let store={}; try{store=JSON.parse(localStorage.getItem(LS)||'{}')}catch(e){store={}}
+// ── Daten ─────────────────────────────────────────────────────────────
+const D={"frames":{"4071":{"w":3907,"h":4000,"H":[[0.2775551976335041,-0.2398043009421563,1539.1153396668526],[0.23774214595057017,0.28466585912424636,-295.54922803133263],[3.033069948012005e-06,-3.53271600096826e-06,1.0]],"clip":[320,240,3690,3615]},"4053":{"w":4000,"h":3907,"H":[[0.2825046883051741,-0.23215000865109067,1541.3039070978004],[0.20953070539388824,0.2923342208696238,639.0608963378667],[-1.2119405421321635e-05,-2.8086918949386513e-06,1.0]],"clip":[235,260,3615,3570]},"3054":{"w":4000,"h":3907,"H":[[0.3160045177905764,-0.23942095431426627,430.35614749391937],[0.24756108965172538,0.30314710376242976,-191.01063050355384],[7.874872346411879e-06,-4.41056866739144e-06,1.0]],"clip":[260,210,3615,3590]}}};
+const LS='laerz-atlas-v2';
+const W=2400;
+const view=document.getElementById('view'),world=document.getElementById('world');
+let store={};try{store=JSON.parse(localStorage.getItem(LS)||'{}')}catch(e){store={}}
 function save(){try{localStorage.setItem(LS,JSON.stringify(store))}catch(e){}}
-
 const frameMat=H=>`matrix3d(${H[0][0]},${H[1][0]},0,${H[2][0]},${H[0][1]},${H[1][1]},0,${H[2][1]},0,0,1,0,${H[0][2]},${H[1][2]},0,${H[2][2]})`;
 const applyH=(H,x,y)=>{const w=H[2][0]*x+H[2][1]*y+H[2][2];return[(H[0][0]*x+H[0][1]*y+H[0][2])/w,(H[1][0]*x+H[1][1]*y+H[1][2])/w]};
 
+// ── UTM Zone 33N ↔ WGS84 ─────────────────────────────────────────────
+const _a=6378137,_f=1/298.257223563,_b=_a*(1-_f),_e2=(_a*_a-_b*_b)/(_a*_a),_ep2=(_a*_a-_b*_b)/(_b*_b),_k0=.9996,_lon0=15;
+function utm33ToLL(E,N){
+  const M=N/_k0,mu=M/(_a*(1-_e2/4-3*_e2*_e2/64-5*_e2**3/256));
+  const e1=(1-Math.sqrt(1-_e2))/(1+Math.sqrt(1-_e2));
+  const p=mu+(3*e1/2-27*e1**3/32)*Math.sin(2*mu)+(21*e1*e1/16-55*e1**4/32)*Math.sin(4*mu)+151*e1**3/96*Math.sin(6*mu);
+  const sp=Math.sin(p),cp=Math.cos(p),tp=Math.tan(p);
+  const N1=_a/Math.sqrt(1-_e2*sp*sp),T1=tp*tp,C1=_ep2*cp*cp;
+  const R1=_a*(1-_e2)/(1-_e2*sp*sp)**1.5,DD=(E-500000)/(N1*_k0);
+  const lat=p-N1*tp/R1*(DD*DD/2-(5+3*T1+10*C1-4*C1*C1-9*_ep2)*DD**4/24+(61+90*T1+298*C1+45*T1*T1-252*_ep2-3*C1*C1)*DD**6/720);
+  const lon=(DD-(1+2*T1+C1)*DD**3/6+(5-2*C1+28*T1-3*C1*C1+8*_ep2+24*T1*T1)*DD**5/120)/cp;
+  return{lat:lat*180/Math.PI,lon:_lon0+lon*180/Math.PI};
+}
+function llToUTM33(lat,lon){
+  const p=lat*Math.PI/180,l=(lon-_lon0)*Math.PI/180;
+  const sp=Math.sin(p),cp=Math.cos(p),tp=Math.tan(p);
+  const N=_a/Math.sqrt(1-_e2*sp*sp),T=tp*tp,C=_ep2*cp*cp,A=cp*l;
+  const M=_a*((1-_e2/4-3*_e2*_e2/64-5*_e2**3/256)*p-(3*_e2/8+3*_e2*_e2/32+45*_e2**3/1024)*Math.sin(2*p)
+    +(15*_e2*_e2/256+45*_e2**3/1024)*Math.sin(4*p)-35*_e2**3/3072*Math.sin(6*p));
+  return{e:_k0*N*(A+(1-T+C)*A**3/6+(5-18*T+T*T+72*C-58*_ep2)*A**5/120)+500000,
+         n:_k0*(M+N*tp*(A*A/2+(5-T+9*C+4*C*C)*A**4/24+(61-58*T+T*T+600*C-330*_ep2)*A**6/720))};
+}
+function worldToLL(x,y){return utm33ToLL(348600+x,5909100-y)}
+function llToWorld(lat,lon){const u=llToUTM33(lat,lon);return{x:u.e-348600,y:5909100-u.n}}
+
+// ── Google Satellite Tiles ────────────────────────────────────────────
+const GZOOM=17;
+function llToTile(lat,lon,z){const n=1<<z,lr=lat*Math.PI/180;return{x:n*(lon+180)/360,y:n*(1-Math.log(Math.tan(lr)+1/Math.cos(lr))/Math.PI)/2}}
+function tileToLL(tx,ty,z){const n=1<<z;return{lat:Math.atan(Math.sinh(Math.PI*(1-2*ty/n)))*180/Math.PI,lon:tx/n*360-180}}
+function buildGoogleTiles(container){
+  container.innerHTML='';
+  const nw=worldToLL(0,0),se=worldToLL(W,W);
+  const tNW=llToTile(nw.lat,nw.lon,GZOOM),tSE=llToTile(se.lat,se.lon,GZOOM);
+  for(let tx=Math.floor(tNW.x);tx<=Math.floor(tSE.x);tx++)
+    for(let ty=Math.floor(tNW.y);ty<=Math.floor(tSE.y);ty++){
+      const tl=tileToLL(tx,ty,GZOOM),br=tileToLL(tx+1,ty+1,GZOOM);
+      const wTL=llToWorld(tl.lat,tl.lon),wBR=llToWorld(br.lat,br.lon);
+      const img=new Image();
+      img.src=`https://mt${(tx+ty)%4}.google.com/vt/lyrs=s&x=${tx}&y=${ty}&z=${GZOOM}`;
+      img.onerror=()=>{img.style.display='none'};
+      Object.assign(img.style,{position:'absolute',left:wTL.x+'px',top:wTL.y+'px',
+        width:(wBR.x-wTL.x)+'px',height:(wBR.y-wTL.y)+'px'});
+      img.alt='';img.draggable=false;
+      container.appendChild(img);
+    }
+}
+
+// ── Ebenen-Definition ─────────────────────────────────────────────────
 const LAYERS=[
- {id:'heute',name:'Luftbild heute',sub:'DOP M-V',src:'dop_heute.jpg',kind:'full',on:true,op:1,adj:false,sw:'#6a8f4e'},
- {id:'1953',name:'Luftbild 1953',sub:'alte Bahnen, unverändert',src:'dop_1953.jpg',kind:'full',on:false,op:1,adj:true,sw:'#9a9a92'},
- {id:'3054',name:'1945 · Frame 3054',sub:'US7/0094/C',src:'f3054.jpg',kind:'frame',on:true,op:.85,adj:true,sw:'#d070d0'},
- {id:'4071',name:'1945 · Frame 4071',sub:'US7/0094/C',src:'f4071.jpg',kind:'frame',on:true,op:.85,adj:true,sw:'#e0b000'},
- {id:'4053',name:'1945 · Frame 4053',sub:'US7/0094/C',src:'f4053.jpg',kind:'frame',on:true,op:.85,adj:true,sw:'#30b070'},
- {id:'alkis',name:'Flurstücke + Gebäude',sub:'ALKIS',src:'alkis.png',kind:'full',on:false,op:1,adj:false,sw:'#e8d000'},
- {id:'foot',name:'Bildränder 1945',sub:'Umrisse der Aufnahmen',kind:'foot',on:false,op:1,adj:false,sw:'#ffffff'}
+  {id:'google',name:'Google Satellite',sub:'live',kind:'google',on:false,op:1,adj:false,sw:'#4285f4',
+   desc:'Aktuelle Satellitenbilder von Google. Werden live geladen (Internetverbindung nötig). Aktualität regional unterschiedlich. Keine eigene Georeferenzierung.'},
+  {id:'heute',name:'Luftbild heute',sub:'DOP M-V, 0.6 m/px',src:'dop_heute.jpg',kind:'full',on:true,op:1,adj:false,sw:'#6a8f4e',
+   desc:'Digitales Orthophoto des Landes M-V, aus aktueller Befliegung des LAiV. 0,6 m/px. Amtlich georeferenziert, Lagegenauigkeit besser als 0,5 m. Quelle: GeoBasis-DE/M-V (CC BY 4.0).'},
+  {id:'sentinel',name:'Sentinel-2',sub:'BKG, 10 m/px',src:'sentinel2.jpg',kind:'full',on:false,op:1,adj:false,sw:'#2e7d32',
+   desc:'ESA-Satellit Sentinel-2, Deutschlandmosaik des BKG. 10 m Bodenauflösung, daher nur für Übersicht geeignet. Georeferenzierung global, Genauigkeit ca. 10 m. Quelle: BKG (dl-de/by-2-0).'},
+  {id:'osm',name:'OpenStreetMap',sub:'terrestris WMS',src:'osm.jpg',kind:'full',on:false,op:1,adj:false,sw:'#7eb852',
+   desc:'basemap.de des BKG, basierend auf OpenStreetMap-Daten. Vektordaten, Genauigkeit variiert je nach Beitragenden. Quelle: BKG / OSM-Mitwirkende (dl-de/by-2-0).'},
+  {id:'topo',name:'Topographische Karte',sub:'BKG TopPlusOpen',src:'topo_bkg.jpg',kind:'full',on:false,op:1,adj:false,sw:'#ff7043',
+   desc:'TopPlusOpen des BKG: topographische Karte aus amtlichen Geobasisdaten aller Bundesländer. Mehrere Maßstabsebenen, hier bei 1:25.000. Quelle: BKG (dl-de/by-2-0).'},
+  {id:'dtk25',name:'DTK25 aktuell',sub:'GeoBasis-DE/M-V',src:'dtk25.jpg',kind:'full',on:false,op:1,adj:false,sw:'#ff9800',
+   desc:'Digitale Topographische Karte 1:25.000 des Landes M-V. Amtlich georeferenziert, aktueller Datenbestand. Quelle: GeoBasis-DE/M-V (CC BY 4.0).'},
+  {id:'1991',name:'Luftbild 1991',sub:'DOP M-V, CIR-Infrarot',src:'dop_1991.jpg',kind:'full',on:false,op:1,adj:true,sw:'#78909c',
+   desc:'Historisches Orthophoto aus CIR-Infrarot-Befliegung 1990/91 (Falschfarben). 0,4 m/px. Zeigt den Flugplatz kurz nach der Wende, noch mit militärischer Infrastruktur. Amtlich georeferenziert. Quelle: GeoBasis-DE/M-V (CC BY 4.0).'},
+  {id:'1953',name:'Luftbild 1953',sub:'DOP M-V, s/w',src:'dop_1953.jpg',kind:'full',on:false,op:1,adj:true,sw:'#9a9a92',
+   desc:'Historisches Orthophoto aus Befliegung 1953, Schwarzweiß. 1,0 m/px. Referenzbild für die Georeferenzierung der 1945er Aufnahmen (Bahnen und Rollwege noch identisch). Amtlich georeferenziert. Quelle: GeoBasis-DE/M-V (CC BY 4.0).'},
+  {id:'3054',name:'1945 - Frame 3054',sub:'US7/0094/C',src:'f3054.jpg',kind:'frame',on:true,op:.85,adj:true,sw:'#d070d0',
+   desc:'Luftaufklärung vom 11.04.1945 (einen Tag nach dem Angriff der 8th Air Force), Frame 3054. Georeferenziert per automatischer Bildkorrelation gegen DOP 1953 an 71 Passpunkten + Verknüpfungspunkte zu Frame 4071. Projektiv entzerrt (RANSAC). Restfehler 1,8 m, 0,195 m/px im Original. Quelle: NCAP.'},
+  {id:'4071',name:'1945 - Frame 4071',sub:'US7/0094/C',src:'f4071.jpg',kind:'frame',on:true,op:.85,adj:true,sw:'#e0b000',
+   desc:'Luftaufklärung vom 11.04.1945, Frame 4071 (zentrales Bild). 29 Passpunkte gegen DOP 1953 + Verknüpfungspunkte zu Frames 3054 und 4053. Projektiv entzerrt. Restfehler 2,9 m, 0,183 m/px. Quelle: NCAP.'},
+  {id:'4053',name:'1945 - Frame 4053',sub:'US7/0094/C',src:'f4053.jpg',kind:'frame',on:true,op:.85,adj:true,sw:'#30b070',
+   desc:'Luftaufklärung vom 11.04.1945, Frame 4053. 105 Passpunkte + 1.280 Verknüpfungspunkte zu Frame 4071. Projektiv entzerrt. Restfehler 2,5 m, 0,194 m/px. Quelle: NCAP.'},
+  {id:'tk25ddr',name:'TK25 DDR-Ausgabe',sub:'1981-1987',src:'tk25_ddr.jpg',kind:'full',on:false,op:1,adj:false,sw:'#b71c1c',
+   desc:'Topographische Karte 1:25.000, DDR-Ausgabe (Ausgabestaat), Aufnahmen 1981-1987. Zeigt den Flugplatz als militärisches Sperrgebiet der NVA/GSSD. Quelle: GeoBasis-DE/M-V (CC BY 4.0).'},
+  {id:'tk25m',name:'Messtischblatt',sub:'1877-1943',src:'tk25_messtisch.jpg',kind:'full',on:false,op:1,adj:false,sw:'#5d4037',
+   desc:'Preußische Landesaufnahme 1:25.000 (Messtischblatt). Erstausgabe 1877-1889, Nachträge bis 1943. Zeigt die Landschaft vor/während des Flugplatzbetriebs. Quelle: GeoBasis-DE/M-V (CC BY 4.0).'},
+  {id:'dgm',name:'Geländemodell',sub:'DGM Schummerung',src:'dgm.png',kind:'full',on:false,op:.7,adj:false,sw:'#4e342e',
+   desc:'Digitales Geländemodell als Schummerungsdarstellung. Aus Laserscanning (LiDAR), Bodenauflösung 1-2 m. Zeigt Geländeformen, Senken und Erhebungen. Quelle: GeoBasis-DE/M-V (CC BY 4.0).'},
+  {id:'alkis',name:'Flurstücke + Gebäude',sub:'ALKIS',src:'alkis.png',kind:'full',on:false,op:1,adj:false,sw:'#e8d000',
+   desc:'Amtliches Liegenschaftskataster (ALKIS): Flurstücksgrenzen und Gebäudegrundrisse. Amtlich georeferenziert. Quelle: GeoBasis-DE/M-V (CC BY 4.0).'},
+  {id:'foot',name:'Bildränder 1945',sub:'Umrisse der drei Aufnahmen',kind:'foot',on:false,op:1,adj:false,sw:'#ffffff',
+   desc:'Zeigt die Umrisse (Clip-Bereiche) der drei Luftaufklärungsbilder von 1945.'}
 ];
 LAYERS.forEach(L=>{const s=store[L.id];if(s){L.on=s.on??L.on;L.op=s.op??L.op;L.a=s.a}L.a=L.a||{dx:0,dy:0,rot:0,sc:100}});
 
-// build layer DOM
+// ── Layer-DOM aufbauen ────────────────────────────────────────────────
 function centerOf(L){
   if(L.kind==='frame'){const f=D.frames[L.id];return applyH(f.H,f.w/2,f.h/2)}
-  if(L.kind==='ek'){const e=D.ek;return[e.E0-348600+e.w*e.mpx/2,5909100-e.N0+e.h*e.mpy/2]}
   return[1200,1200];
 }
-let svgFoot;
+let svgFoot,annoSvg;
 LAYERS.forEach(L=>{
   const d=document.createElement('div');d.className='lyr'+(L.kind==='full'?' full':'');L.el=d;
-  if(L.kind==='full'){const i=new Image();i.src=L.src;i.alt=L.name;d.appendChild(i)}
-  if(L.kind==='frame'){const f=D.frames[L.id];const i=new Image();i.src=L.src;i.alt=L.name;i.width=f.w;i.height=f.h;
+  if(L.kind==='google'){L._loaded=false}
+  if(L.kind==='full'){const i=new Image();i.src=L.src;i.alt=L.name;d.appendChild(i);L._img=i}
+  if(L.kind==='frame'){const f=D.frames[L.id];const i=new Image();i.src=L.src;i.alt=L.name;
     i.style.width=f.w+'px';i.style.height=f.h+'px';i.style.transform=frameMat(f.H);
-    const c=f.clip;i.style.clipPath=`inset(${c[1]}px ${f.w-c[2]}px ${f.h-c[3]}px ${c[0]}px)`;d.appendChild(i)}
-  if(L.kind==='ek'){const e=D.ek;const i=new Image();i.src=L.src;i.alt=L.name;
-    Object.assign(i.style,{left:(e.E0-348600)+'px',top:(5909100-e.N0)+'px',width:(e.w*e.mpx)+'px',height:(e.h*e.mpy)+'px'});d.appendChild(i)}
-  if(L.kind==='vec'||L.kind==='foot'){
-    const s=document.createElementNS('http://www.w3.org/2000/svg','svg');s.setAttribute('viewBox','0 0 2400 2400');s.setAttribute('width','2400');s.setAttribute('height','2400');s.id=L.kind==='vec'?'vec':'';s.style.position='absolute';s.style.overflow='visible';
-    if(L.kind==='vec'){
-      let h='';
-      for(const [k,p] of Object.entries(D.parcels)){h+=`<polygon points="${p.map(q=>q.join(',')).join(' ')}" fill="rgba(224,48,48,.10)" stroke="#e03030" stroke-width="0.8" vector-effect="non-scaling-stroke" style="stroke-width:2px"/>`;
-        const cx=p.reduce((a,q)=>a+q[0],0)/p.length,cy=p.reduce((a,q)=>a+q[1],0)/p.length;
-        h+=`<text x="${cx}" y="${cy}" font-size="5" text-anchor="middle" fill="#fff" stroke="#000" stroke-width=".6" paint-order="stroke" font-family="JetBrains Mono,monospace">${k}</text>`}
-      h+=`<polygon points="${D.house.map(q=>q.join(',')).join(' ')}" fill="rgba(255,0,180,.35)" stroke="#d0008c" stroke-width="2" vector-effect="non-scaling-stroke"/>`;
-      D.craters.forEach(c=>{h+=`<circle cx="${c.x}" cy="${c.y}" r="6" fill="none" stroke="#2ad4ff" stroke-width="2" vector-effect="non-scaling-stroke"/><circle cx="${c.x}" cy="${c.y}" r="0.9" fill="#2ad4ff"/><text x="${c.x+8}" y="${c.y+1.5}" font-size="4.2" fill="#2ad4ff" stroke="#000" stroke-width=".5" paint-order="stroke" font-family="Barlow,sans-serif">${c.name}</text>`});
-      s.innerHTML=h;
-    } else {svgFoot=s}
-    d.appendChild(s)}
+    const c=f.clip;i.style.clipPath=`inset(${c[1]}px ${f.w-c[2]}px ${f.h-c[3]}px ${c[0]}px)`;d.appendChild(i);L._img=i}
+  if(L.kind==='foot'){
+    const s=document.createElementNS('http://www.w3.org/2000/svg','svg');
+    s.setAttribute('viewBox','0 0 2400 2400');s.setAttribute('width','2400');s.setAttribute('height','2400');
+    s.style.cssText='position:absolute;overflow:visible';svgFoot=s;d.appendChild(s)}
   world.appendChild(d);
 });
+// Annotations-SVG (ganz oben)
+annoSvg=document.createElementNS('http://www.w3.org/2000/svg','svg');
+annoSvg.setAttribute('viewBox','0 0 2400 2400');annoSvg.setAttribute('width','2400');annoSvg.setAttribute('height','2400');
+annoSvg.style.cssText='position:absolute;left:0;top:0;overflow:visible;pointer-events:none';
+world.appendChild(annoSvg);
+
 function drawFoot(){
+  if(!svgFoot)return;
   let h='';const cols={3054:'#d070d0',4071:'#e0b000',4053:'#30b070'};
-  for(const id of ['3054','4071','4053']){const L=LAYERS.find(x=>x.id===id),f=D.frames[id],c=f.clip;
+  for(const id of['3054','4071','4053']){const L=LAYERS.find(x=>x.id===id),f=D.frames[id],c=f.clip;
     const pts=[[c[0],c[1]],[c[2],c[1]],[c[2],c[3]],[c[0],c[3]]].map(p=>adjPoint(L,applyH(f.H,p[0],p[1])));
     h+=`<polygon points="${pts.map(p=>p.join(',')).join(' ')}" fill="none" stroke="${cols[id]}" stroke-width="2" vector-effect="non-scaling-stroke"/><text x="${pts[0][0]}" y="${pts[0][1]-4}" font-size="14" fill="${cols[id]}" stroke="#000" stroke-width="1" paint-order="stroke" font-family="Barlow Condensed,sans-serif">Frame ${id}</text>`}
   svgFoot.innerHTML=h;
@@ -195,30 +292,54 @@ function adjPoint(L,[x,y]){const a=L.a,[cx,cy]=centerOf(L),s=a.sc/100,r=a.rot*Ma
   const ux=(x-cx)*s,uy=(y-cy)*s;return[cx+ux*Math.cos(r)-uy*Math.sin(r)+a.dx,cy+ux*Math.sin(r)+uy*Math.cos(r)+a.dy]}
 function applyLayer(L){
   L.el.hidden=!L.on;L.el.style.opacity=L.op;
+  if(L.kind==='google'&&L.on&&!L._loaded){buildGoogleTiles(L.el);L._loaded=true}
   if(L.adj){const a=L.a,[cx,cy]=centerOf(L);
     L.el.style.transformOrigin=`${cx}px ${cy}px`;
     L.el.style.transform=`translate(${a.dx}px,${a.dy}px) rotate(${a.rot}deg) scale(${a.sc/100})`}
 }
 
-// panel
+// ── Panel: Ebenen-Liste ───────────────────────────────────────────────
 const host=document.getElementById('layers');let selected=null;
 function persist(L){store[L.id]={on:L.on,op:L.op,a:L.a};save()}
+function rebuildLayerOrder(){
+  // DOM-Reihenfolge in world und panel synchronisieren
+  LAYERS.forEach(L=>world.appendChild(L.el));
+  world.appendChild(annoSvg); // Annotations immer oben
+  LAYERS.slice().reverse().forEach(L=>host.appendChild(L.row));
+}
+function moveLayer(L,dir){
+  const i=LAYERS.indexOf(L),j=i+dir;
+  if(j<0||j>=LAYERS.length)return;
+  [LAYERS[i],LAYERS[j]]=[LAYERS[j],LAYERS[i]];
+  rebuildLayerOrder();toast(L.name+(dir>0?' nach oben':' nach unten'));
+}
+
 LAYERS.slice().reverse().forEach(L=>{
   const r=document.createElement('div');r.className='row';L.row=r;
+  const descId='desc_'+L.id;
   r.innerHTML=`<input type="checkbox" id="cb_${L.id}" ${L.on?'checked':''}>
    <label for="cb_${L.id}"><span class="nm"><span class="sw" style="background:${L.sw}"></span>${L.name}</span><span class="sub">${L.sub}</span></label>
-   ${L.adj?`<button class="adj" id="ad_${L.id}" aria-pressed="false">Anpassen</button>`:'<span></span>'}
-   ${(L.kind!=='vec'&&L.kind!=='foot')?`<input type="range" id="op_${L.id}" min="0" max="1" step="0.05" value="${L.op}" aria-label="Deckkraft ${L.name}">`:''}`;
+   <span class="acts">
+     ${L.adj?`<button class="adj" id="ad_${L.id}" aria-pressed="false" title="Position anpassen">Anpassen</button>`:''}
+     <button class="ibtn" data-info="${L.id}" title="Beschreibung ein-/ausblenden">i</button>
+     <span class="reord"><button data-up="${L.id}" title="Nach oben">&uarr;</button><button data-dn="${L.id}" title="Nach unten">&darr;</button></span>
+   </span>
+   <input type="range" id="op_${L.id}" min="0" max="1" step="0.05" value="${L.op}" aria-label="Deckkraft ${L.name}">
+   <div class="ldesc" id="${descId}" hidden>${L.desc||''}</div>`;
   host.appendChild(r);
   r.querySelector('input[type=checkbox]').onchange=e=>{L.on=e.target.checked;applyLayer(L);persist(L)};
-  const op=r.querySelector('input[type=range]');if(op)op.oninput=e=>{L.op=+e.target.value;applyLayer(L);persist(L)};
-  if(L.adj)r.querySelector('.adj').onclick=()=>select(selected===L?null:L);
+  r.querySelector('input[type=range]').oninput=e=>{L.op=+e.target.value;applyLayer(L);persist(L)};
+  if(L.adj)r.querySelector('.adj').onclick=()=>selectAdj(selected===L?null:L);
+  r.querySelector('[data-info]').onclick=()=>{const d=document.getElementById(descId);d.hidden=!d.hidden};
+  r.querySelector('[data-up]').onclick=()=>moveLayer(L,-1); // -1 = weiter unten im Array = weiter oben gerendert
+  r.querySelector('[data-dn]').onclick=()=>moveLayer(L,1);
 });
 LAYERS.forEach(applyLayer);drawFoot();
 
+// ── Ebene anpassen ────────────────────────────────────────────────────
 const adjbox=document.getElementById('adjbox');
-const F=[['dx',v=>v],['dy',v=>v],['rot',v=>v],['sc',v=>v]];
-function select(L){
+const F=[['dx'],['dy'],['rot'],['sc']];
+function selectAdj(L){
   selected=L;LAYERS.forEach(x=>{if(x.row){x.row.classList.toggle('sel',x===L);const b=x.row.querySelector('.adj');if(b)b.setAttribute('aria-pressed',x===L)}});
   adjbox.hidden=!L;if(!L){setDrag(false);return}
   document.getElementById('adjtitle').textContent=L.name+' anpassen';
@@ -226,69 +347,225 @@ function select(L){
   syncAdj();
 }
 function syncAdj(){if(!selected)return;const a=selected.a;
-  for(const [k] of F){document.getElementById('r_'+k).value=k==='dy'?-a[k]:a[k];document.getElementById('n_'+k).value=+(k==='dy'?-a[k]:a[k]).toFixed(2)}}
-for(const [k] of F){
+  for(const[k]of F){document.getElementById('r_'+k).value=k==='dy'?-a[k]:a[k];document.getElementById('n_'+k).value=+(k==='dy'?-a[k]:a[k]).toFixed(2)}}
+for(const[k]of F){
   const set=v=>{if(!selected)return;v=+v;if(isNaN(v))return;selected.a[k]=k==='dy'?-v:v;applyLayer(selected);drawFoot();persist(selected);syncAdj()};
   document.getElementById('r_'+k).oninput=e=>set(e.target.value);
   document.getElementById('n_'+k).onchange=e=>set(e.target.value);
 }
 document.getElementById('adjreset').onclick=()=>{if(!selected)return;selected.a={dx:0,dy:0,rot:0,sc:100};applyLayer(selected);drawFoot();persist(selected);syncAdj();toast('Ebene zurückgesetzt')};
-document.getElementById('adjdone').onclick=()=>select(null);
+document.getElementById('adjdone').onclick=()=>selectAdj(null);
 let dragLayer=false;const dm=document.getElementById('dragmode');
 function setDrag(v){dragLayer=v;dm.setAttribute('aria-pressed',v);view.classList.toggle('movelayer',v)}
 dm.onclick=()=>setDrag(!dragLayer);
 
-// view transform
+// ── Karten-Navigation ─────────────────────────────────────────────────
 let z=1,tx=0,ty=0;
-function render(){world.style.transform=`translate(${tx}px,${ty}px) scale(${z})`;
+function render(){
+  world.style.transform=`translate(${tx}px,${ty}px) scale(${z})`;
   const target=view.clientWidth/6/z;const nice=[1,2,5,10,20,25,50,100,200,250,500,1000];let m=nice[0];for(const n of nice)if(n<=target)m=n;
-  document.getElementById('scalebar').style.width=(m*z)+'px';document.getElementById('scalelbl').textContent=m+' m'}
+  document.getElementById('scalebar').style.width=(m*z)+'px';document.getElementById('scalelbl').textContent=m+' m';
+  renderAnnotations();
+}
 function home(){const cx=1250,cy=1150,span=900;z=Math.min(view.clientWidth,view.clientHeight)/span;tx=view.clientWidth/2-cx*z;ty=view.clientHeight/2-cy*z;render()}
 function zoomAt(f,px,py){const nz=Math.max(.15,Math.min(40,z*f));f=nz/z;tx=px-(px-tx)*f;ty=py-(py-ty)*f;z=nz;render()}
 view.addEventListener('wheel',e=>{e.preventDefault();const r=view.getBoundingClientRect();zoomAt(Math.exp(-e.deltaY*0.0015),e.clientX-r.left,e.clientY-r.top)},{passive:false});
 document.getElementById('zin').onclick=()=>zoomAt(1.5,view.clientWidth/2,view.clientHeight/2);
 document.getElementById('zout').onclick=()=>zoomAt(1/1.5,view.clientWidth/2,view.clientHeight/2);
 document.getElementById('zhome').onclick=home;
-const ptrs=new Map();let last=null,pinch=null;
-view.addEventListener('pointerdown',e=>{if(e.target.closest('.zoom,.chip'))return;view.setPointerCapture(e.pointerId);ptrs.set(e.pointerId,[e.clientX,e.clientY]);last=[e.clientX,e.clientY];if(!dragLayer)view.classList.add('drag');
-  if(ptrs.size===2){const [a,b]=[...ptrs.values()];pinch={d:Math.hypot(a[0]-b[0],a[1]-b[1])}}});
+
+// ── Pointer-Events (Pan, Zoom, Tool-Klicks) ───────────────────────────
+const ptrs=new Map();let last=null,pinch=null,downPos=null;
+function viewToWorld(cx,cy){const r=view.getBoundingClientRect();return{x:(cx-r.left-tx)/z,y:(cy-r.top-ty)/z}}
+
+view.addEventListener('pointerdown',e=>{
+  if(e.target.closest('.zoom,.chip,.tools'))return;
+  view.setPointerCapture(e.pointerId);ptrs.set(e.pointerId,[e.clientX,e.clientY]);last=[e.clientX,e.clientY];
+  downPos={x:e.clientX,y:e.clientY,t:Date.now()};
+  if(tool==='pan'&&!dragLayer)view.classList.add('drag');
+  if(ptrs.size===2){const[a,b]=[...ptrs.values()];pinch={d:Math.hypot(a[0]-b[0],a[1]-b[1])}}
+});
 view.addEventListener('pointermove',e=>{
-  const r=view.getBoundingClientRect();const wx=(e.clientX-r.left-tx)/z,wy=(e.clientY-r.top-ty)/z;
-  document.getElementById('coord').textContent=`E ${(348600+wx).toFixed(1)} · N ${(5909100-wy).toFixed(1)}`;
+  // Koordinaten-Anzeige
+  const w=viewToWorld(e.clientX,e.clientY);
+  const easting=348600+w.x,northing=5909100-w.y;
+  const ll=worldToLL(w.x,w.y);
+  document.getElementById('coord').innerHTML=
+    `E ${easting.toFixed(1)} &middot; N ${northing.toFixed(1)}<small>${ll.lat.toFixed(5)}&deg;N &nbsp;${ll.lon.toFixed(5)}&deg;E</small>`;
+  // Maus-Vorschau bei Messung
+  if(tool==='measure'&&curMeasure.length>0){mouseWorld=[w.x,w.y];renderAnnotations()}
+
   if(!ptrs.has(e.pointerId))return;ptrs.set(e.pointerId,[e.clientX,e.clientY]);
-  if(ptrs.size===2&&pinch){const [a,b]=[...ptrs.values()];const d=Math.hypot(a[0]-b[0],a[1]-b[1]);zoomAt(d/pinch.d,(a[0]+b[0])/2-r.left,(a[1]+b[1])/2-r.top);pinch.d=d;return}
+  if(ptrs.size===2&&pinch){const[a,b]=[...ptrs.values()];const d=Math.hypot(a[0]-b[0],a[1]-b[1]);
+    const r=view.getBoundingClientRect();zoomAt(d/pinch.d,(a[0]+b[0])/2-r.left,(a[1]+b[1])/2-r.top);pinch.d=d;return}
   const dx=e.clientX-last[0],dy=e.clientY-last[1];last=[e.clientX,e.clientY];
   if(dragLayer&&selected){selected.a.dx+=dx/z;selected.a.dy+=dy/z;applyLayer(selected);drawFoot();syncAdj()}
-  else{tx+=dx;ty+=dy;render()}});
-const up=e=>{ptrs.delete(e.pointerId);if(ptrs.size<2)pinch=null;view.classList.remove('drag');if(dragLayer&&selected)persist(selected)};
+  else if(tool==='pan'||ptrs.size>0&&tool!=='pan'){tx+=dx;ty+=dy;render()}
+});
+const up=e=>{
+  const wasDrag=downPos&&(Math.hypot(e.clientX-downPos.x,e.clientY-downPos.y)>5||Date.now()-downPos.t>300);
+  ptrs.delete(e.pointerId);if(ptrs.size<2)pinch=null;view.classList.remove('drag');
+  if(dragLayer&&selected)persist(selected);
+  // Tool-Klick erkennen (kein Drag)
+  if(!wasDrag&&downPos&&tool!=='pan'){
+    const w=viewToWorld(e.clientX,e.clientY);
+    if(tool==='measure')addMeasurePoint(w.x,w.y);
+    if(tool==='mark')addMarker(w.x,w.y);
+  }
+  downPos=null;
+};
 view.addEventListener('pointerup',up);view.addEventListener('pointercancel',up);
+view.addEventListener('dblclick',e=>{if(tool==='measure'&&curMeasure.length>=2){finishMeasure();e.preventDefault()}});
 window.addEventListener('resize',render);
 
-// keys
-const frames=()=>LAYERS.filter(L=>L.kind==='frame');let hHeld=false;
-window.addEventListener('keydown',e=>{if(e.target.matches('input,textarea'))return;
-  if(e.key==='h'||e.key==='H'){if(!hHeld){hHeld=true;frames().forEach(L=>L.el.hidden=true)}}
+// ── Tastatur ──────────────────────────────────────────────────────────
+const frames45=()=>LAYERS.filter(L=>L.kind==='frame');let hHeld=false;
+window.addEventListener('keydown',e=>{
+  if(e.target.matches('input,textarea'))return;
+  if(e.key==='h'||e.key==='H'){if(!hHeld){hHeld=true;frames45().forEach(L=>L.el.hidden=true)}}
+  if(e.key==='m')setTool(tool==='measure'?'pan':'measure');
+  if(e.key==='p')setTool(tool==='mark'?'pan':'mark');
+  if(e.key==='Escape'){if(tool!=='pan'){if(tool==='measure'&&curMeasure.length>0){curMeasure=[];renderAnnotations()}setTool('pan')}else if(selected)selectAdj(null)}
   if(selected&&e.key.startsWith('Arrow')){const s=e.shiftKey?10:1;const a=selected.a;
     if(e.key==='ArrowLeft')a.dx-=s;if(e.key==='ArrowRight')a.dx+=s;if(e.key==='ArrowUp')a.dy-=s;if(e.key==='ArrowDown')a.dy+=s;
-    e.preventDefault();applyLayer(selected);drawFoot();persist(selected);syncAdj()}});
-window.addEventListener('keyup',e=>{if(e.key==='h'||e.key==='H'){hHeld=false;frames().forEach(applyLayer)}});
+    e.preventDefault();applyLayer(selected);drawFoot();persist(selected);syncAdj()}
+});
+window.addEventListener('keyup',e=>{if(e.key==='h'||e.key==='H'){hHeld=false;frames45().forEach(applyLayer)}});
 
-// presets
+// ── Werkzeuge: Messen & Markieren ─────────────────────────────────────
+let tool='pan';
+let measures=[],curMeasure=[],markers=[];
+let mouseWorld=null;
+// Restore from storage
+try{const sa=store._anno;if(sa){measures=sa.m||[];markers=sa.k||[]}}catch(e){}
+
+function setTool(t){
+  if(tool==='measure'&&curMeasure.length>=2)finishMeasure();
+  if(tool==='measure'&&curMeasure.length>0){curMeasure=[];renderAnnotations()}
+  tool=t;
+  view.classList.toggle('tool-active',t!=='pan');
+  document.getElementById('t_measure').classList.toggle('on',t==='measure');
+  document.getElementById('t_mark').classList.toggle('on',t==='mark');
+  if(t==='measure')toast('Klicken um Messpunkte zu setzen. Doppelklick beendet.');
+  if(t==='mark')toast('Klicken um Marker zu setzen.');
+}
+function addMeasurePoint(wx,wy){curMeasure.push([wx,wy]);renderAnnotations()}
+function finishMeasure(){if(curMeasure.length>=2){measures.push(curMeasure)}curMeasure=[];mouseWorld=null;persistAnno();renderAnnotations()}
+function addMarker(wx,wy){markers.push([wx,wy]);persistAnno();renderAnnotations()}
+function persistAnno(){store._anno={m:measures,k:markers};save()}
+
+function renderAnnotations(){
+  const fs=Math.max(6,12/z),r=Math.max(2,4/z),sw=Math.max(.5,1.5/z);
+  let h='';
+  function renderLine(pts,color,preview){
+    let total=0;
+    for(let i=0;i<pts.length;i++){
+      const[x,y]=pts[i];
+      h+=`<circle cx="${x}" cy="${y}" r="${r}" fill="${color}" stroke="#000" stroke-width="${sw*.7}"/>`;
+      if(i>0){
+        const[px,py]=pts[i-1];const d=Math.hypot(x-px,y-py);total+=d;
+        h+=`<line x1="${px}" y1="${py}" x2="${x}" y2="${y}" stroke="${color}" stroke-width="${sw}" stroke-dasharray="${sw*4}"/>`;
+        const mx=(x+px)/2,my=(y+py)/2;
+        h+=`<text x="${mx}" y="${my-fs*.6}" text-anchor="middle" font-size="${fs}" fill="${color}" stroke="#000" stroke-width="${sw}" paint-order="stroke" font-family="Barlow,sans-serif">${d<100?d.toFixed(1):Math.round(d)} m</text>`;
+      }
+    }
+    if(preview&&mouseWorld&&pts.length>0){
+      const lp=pts[pts.length-1],d=Math.hypot(mouseWorld[0]-lp[0],mouseWorld[1]-lp[1]);total+=d;
+      h+=`<line x1="${lp[0]}" y1="${lp[1]}" x2="${mouseWorld[0]}" y2="${mouseWorld[1]}" stroke="${color}" stroke-width="${sw}" stroke-dasharray="${sw*2}" opacity=".6"/>`;
+    }
+    if(pts.length>=2||preview&&mouseWorld&&pts.length>=1){
+      const lp=preview&&mouseWorld?mouseWorld:pts[pts.length-1];
+      h+=`<text x="${lp[0]+r*2}" y="${lp[1]-fs*.3}" font-size="${fs*1.15}" font-weight="600" fill="${color}" stroke="#000" stroke-width="${sw}" paint-order="stroke" font-family="Barlow,sans-serif">${total<100?total.toFixed(1):Math.round(total)} m</text>`;
+    }
+  }
+  measures.forEach(m=>renderLine(m,'#ffdd00',false));
+  if(curMeasure.length>0)renderLine(curMeasure,'#00ddff',true);
+  markers.forEach(([mx,my])=>{
+    const e=348600+mx,n=5909100-my;
+    h+=`<circle cx="${mx}" cy="${my}" r="${r*1.5}" fill="#ff3366" stroke="#fff" stroke-width="${sw}"/>`;
+    h+=`<text x="${mx+r*2.5}" y="${my+fs*.35}" font-size="${fs}" fill="#ff3366" stroke="#000" stroke-width="${sw}" paint-order="stroke" font-family="JetBrains Mono,monospace">${e.toFixed(0)} / ${n.toFixed(0)}</text>`;
+  });
+  annoSvg.innerHTML=h;
+}
+
+document.getElementById('t_measure').onclick=()=>setTool(tool==='measure'?'pan':'measure');
+document.getElementById('t_mark').onclick=()=>setTool(tool==='mark'?'pan':'mark');
+document.getElementById('t_clear').onclick=()=>{measures=[];curMeasure=[];markers=[];mouseWorld=null;persistAnno();renderAnnotations();setTool('pan');toast('Alle Messungen und Marker entfernt')};
+
+// ── Presets ───────────────────────────────────────────────────────────
+const off=id=>[0],on=(id,op)=>[1,op];
+const allOff=Object.fromEntries(LAYERS.map(L=>[L.id,[0]]));
 const PRE={
- '1945':{heute:[1,1],'1953':[0],'3054':[1,.85],'4071':[1,.85],'4053':[1,.85],alkis:[0],foot:[1]},
- '1953':{heute:[0],'1953':[1,1],'3054':[1,.6],'4071':[1,.6],'4053':[1,.6],alkis:[0],foot:[0]},
- 'heute':{heute:[1,1],'1953':[0],'3054':[0],'4071':[0],'4053':[0],alkis:[1,1],foot:[0]}};
+ '1945':{...allOff,heute:[1,1],'3054':[1,.85],'4071':[1,.85],'4053':[1,.85],foot:[1]},
+ '1953':{...allOff,'1953':[1,1],'3054':[1,.6],'4071':[1,.6],'4053':[1,.6]},
+ '1991':{...allOff,'1991':[1,1],'3054':[1,.5],'4071':[1,.5],'4053':[1,.5]},
+ 'messtisch':{...allOff,tk25m:[1,1],'3054':[1,.65],'4071':[1,.65],'4053':[1,.65],foot:[1]},
+ 'heute':{...allOff,heute:[1,1],alkis:[1,1]}
+};
 document.querySelectorAll('[data-preset]').forEach(b=>b.onclick=()=>{const p=PRE[b.dataset.preset];
   LAYERS.forEach(L=>{const v=p[L.id];if(!v)return;L.on=!!v[0];if(v[1]!=null)L.op=v[1];applyLayer(L);persist(L);
-    L.row.querySelector('input[type=checkbox]').checked=L.on;const o=L.row.querySelector('input[type=range]');if(o)o.value=L.op});
+    L.row.querySelector('input[type=checkbox]').checked=L.on;L.row.querySelector('input[type=range]').value=L.op});
   toast(b.textContent)});
 
-// export / reset
+// ── Export ─────────────────────────────────────────────────────────────
+function exportImage(fmt){
+  const dpr=window.devicePixelRatio||1;
+  const cw=view.clientWidth,ch=view.clientHeight;
+  const c=document.createElement('canvas');c.width=cw*dpr;c.height=ch*dpr;
+  const ctx=c.getContext('2d');ctx.scale(dpr,dpr);
+  ctx.fillStyle=getComputedStyle(view).backgroundColor||'#c9cdc6';
+  ctx.fillRect(0,0,cw,ch);
+  ctx.save();ctx.translate(tx,ty);ctx.scale(z,z);
+  // Sichtbare Ebenen zeichnen
+  for(const L of LAYERS){
+    if(!L.on||L.kind==='foot'||L.kind==='google')continue;
+    ctx.globalAlpha=L.op;
+    if(L.kind==='full'&&L._img&&L._img.complete){
+      ctx.save();
+      if(L.adj){const a=L.a,[cx,cy]=centerOf(L);ctx.translate(cx+a.dx,cy+a.dy);ctx.rotate(a.rot*Math.PI/180);ctx.scale(a.sc/100,a.sc/100);ctx.translate(-cx,-cy)}
+      ctx.drawImage(L._img,0,0,2400,2400);ctx.restore();
+    }
+    if(L.kind==='frame'&&L._img&&L._img.complete){
+      const f=D.frames[L.id],H=f.H,cl=f.clip;
+      ctx.save();
+      if(L.adj){const a=L.a,[cx,cy]=centerOf(L);ctx.translate(cx+a.dx,cy+a.dy);ctx.rotate(a.rot*Math.PI/180);ctx.scale(a.sc/100,a.sc/100);ctx.translate(-cx,-cy)}
+      ctx.transform(H[0][0],H[1][0],H[0][1],H[1][1],H[0][2],H[1][2]);
+      ctx.beginPath();ctx.rect(cl[0],cl[1],cl[2]-cl[0],cl[3]-cl[1]);ctx.clip();
+      ctx.drawImage(L._img,0,0);ctx.restore();
+    }
+  }
+  ctx.globalAlpha=1;
+  // Annotations zeichnen (als SVG auf Canvas)
+  const svgData=new XMLSerializer().serializeToString(annoSvg);
+  const svgBlob=new Blob([svgData],{type:'image/svg+xml;charset=utf-8'});
+  const url=URL.createObjectURL(svgBlob);
+  const svgImg=new Image();
+  svgImg.onload=()=>{
+    ctx.drawImage(svgImg,0,0,2400,2400);ctx.restore();
+    c.toBlob(blob=>{
+      const a=document.createElement('a');a.download=`luftbildatlas_laerz.${fmt}`;
+      a.href=URL.createObjectURL(blob);a.click();URL.revokeObjectURL(a.href);
+      toast('Export gespeichert');
+    },fmt==='jpg'?'image/jpeg':'image/png',0.95);
+    URL.revokeObjectURL(url);
+  };
+  svgImg.onerror=()=>{
+    // Fallback ohne Annotations
+    ctx.restore();
+    c.toBlob(blob=>{const a=document.createElement('a');a.download=`luftbildatlas_laerz.${fmt}`;a.href=URL.createObjectURL(blob);a.click();toast('Export gespeichert (ohne Messungen)')},fmt==='jpg'?'image/jpeg':'image/png',0.95);
+  };
+  svgImg.src=url;
+}
+document.getElementById('exp_png').onclick=()=>exportImage('png');
+document.getElementById('exp_jpg').onclick=()=>exportImage('jpg');
+
+// Anpassungen kopieren / zurücksetzen
 document.getElementById('export').onclick=()=>{const o={};LAYERS.filter(L=>L.adj).forEach(L=>{const a=L.a;if(a.dx||a.dy||a.rot||a.sc!==100)o[L.id]={ost_m:+a.dx.toFixed(2),nord_m:+(-a.dy).toFixed(2),drehung_grad:a.rot,massstab_proz:a.sc}});
   const t=JSON.stringify(o,null,1)||'{}';const box=document.getElementById('exportbox');box.value=Object.keys(o).length?t:'Keine Anpassungen.';box.hidden=false;
   navigator.clipboard?.writeText(box.value).then(()=>toast('In die Zwischenablage kopiert'),()=>{box.select();toast('Text markiert, bitte kopieren')})};
 document.getElementById('resetall').onclick=()=>{LAYERS.forEach(L=>{L.a={dx:0,dy:0,rot:0,sc:100};applyLayer(L);persist(L)});drawFoot();syncAdj();toast('Alle Anpassungen zurückgesetzt')};
-let tt;function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('on');clearTimeout(tt);tt=setTimeout(()=>t.classList.remove('on'),1600)}
 
+// ── Toast & Start ─────────────────────────────────────────────────────
+let tt;function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('on');clearTimeout(tt);tt=setTimeout(()=>t.classList.remove('on'),2000)}
 home();
 </script>
