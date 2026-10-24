@@ -1,0 +1,294 @@
+<title>Luftbildatlas Lärz</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600&family=Barlow+Condensed:wght@500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: full-height map with a docked layer panel (right on desktop, bottom sheet on phones). Airfield-chart look: signal yellow on asphalt. */
+:root{
+  --bg:#eef0ec; --panel:#fbfbf8; --ink:#1d2321; --muted:#5d6763; --line:#cfd5d0;
+  --accent:#d9a400; --accent-ink:#1d2321; --sel:#fff4c9; --map:#c9cdc6;
+  --f-display:"Barlow Condensed","Arial Narrow",system-ui,sans-serif;
+  --f-body:"Barlow",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#151918;--panel:#1d2221;--ink:#e6ebe7;--muted:#9aa6a1;--line:#343c3a;--accent:#f2c230;--accent-ink:#151918;--sel:#3a3418;--map:#0f1211;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#151918;--panel:#1d2221;--ink:#e6ebe7;--muted:#9aa6a1;--line:#343c3a;--accent:#f2c230;--accent-ink:#151918;--sel:#3a3418;--map:#0f1211;color-scheme:dark}
+[hidden]{display:none!important}
+html,body{height:100%}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:14px;overflow:hidden}
+.app{display:grid;grid-template-columns:1fr 340px;height:100%}
+#view{position:relative;overflow:hidden;background:var(--map);touch-action:none;cursor:grab}
+#view.drag{cursor:grabbing}
+#view.movelayer{cursor:move}
+#world{position:absolute;left:0;top:0;width:2400px;height:2400px;transform-origin:0 0}
+.lyr{position:absolute;left:0;top:0;width:2400px;height:2400px;pointer-events:none}
+.lyr img{position:absolute;left:0;top:0;transform-origin:0 0;user-select:none;-webkit-user-drag:none;max-width:none}
+.lyr.full img{width:2400px;height:2400px}
+#vec{position:absolute;left:0;top:0;width:2400px;height:2400px;overflow:visible;pointer-events:none}
+.panel{background:var(--panel);border-left:1px solid var(--line);display:flex;flex-direction:column;min-height:0}
+.phead{padding:14px 16px 10px;border-bottom:1px solid var(--line)}
+.phead h1{font-family:var(--f-display);font-weight:600;font-size:22px;letter-spacing:.02em;margin:0;text-wrap:balance}
+.phead p{margin:4px 0 0;color:var(--muted);font-size:13px;line-height:1.4}
+.pbody{overflow:auto;padding:8px 0 16px;flex:1;min-height:0}
+.sec{padding:8px 16px}
+.sec h2{font-family:var(--f-display);font-size:13px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin:8px 0 6px}
+.row{display:grid;grid-template-columns:22px 1fr auto;align-items:center;gap:8px;padding:6px 8px;border-radius:6px}
+.row.sel{background:var(--sel)}
+.row label{display:flex;flex-direction:column;min-width:0;cursor:pointer}
+.row .nm{font-weight:500}
+.row .sub{color:var(--muted);font-size:12px;font-family:var(--f-mono)}
+.row input[type=range]{grid-column:2/4;width:100%;accent-color:var(--accent)}
+.adj{font-size:12px;border:1px solid var(--line);background:transparent;color:var(--ink);border-radius:4px;padding:3px 7px;cursor:pointer;font-family:var(--f-body)}
+.adj[aria-pressed=true]{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.sw{width:12px;height:12px;border-radius:2px;display:inline-block;margin-right:6px;vertical-align:-1px}
+#adjbox{margin:4px 16px 8px;padding:10px 12px;border:1px solid var(--accent);border-radius:8px;display:grid;gap:8px}
+#adjbox .t{font-family:var(--f-display);font-weight:600;font-size:15px}
+.ctl{display:grid;grid-template-columns:78px 1fr 64px;gap:8px;align-items:center}
+.ctl span{color:var(--muted);font-size:12px}
+.ctl input[type=range]{width:100%;accent-color:var(--accent)}
+.ctl input[type=number]{width:100%;font-family:var(--f-mono);font-size:12px;padding:3px 4px;background:var(--bg);color:var(--ink);border:1px solid var(--line);border-radius:4px}
+.btns{display:flex;flex-wrap:wrap;gap:6px}
+button.b{font-family:var(--f-body);font-size:13px;padding:6px 10px;border-radius:6px;border:1px solid var(--line);background:var(--bg);color:var(--ink);cursor:pointer}
+button.b.pri{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);font-weight:600}
+button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.note{color:var(--muted);font-size:12px;line-height:1.45}
+table.q{width:100%;border-collapse:collapse;font-size:12px;font-variant-numeric:tabular-nums}
+table.q td,table.q th{padding:3px 4px;border-bottom:1px solid var(--line);text-align:right}
+table.q td:first-child,table.q th:first-child{text-align:left}
+.hud{position:absolute;left:max(10px,env(safe-area-inset-left,0px));bottom:10px;display:flex;gap:8px;align-items:flex-end;pointer-events:none}
+.chip{background:color-mix(in srgb,var(--panel) 88%,transparent);border:1px solid var(--line);border-radius:6px;padding:5px 8px;font-family:var(--f-mono);font-size:12px;pointer-events:auto}
+.zoom{position:absolute;right:10px;top:10px;display:flex;flex-direction:column;gap:6px}
+.zoom button{width:36px;height:36px;font-size:18px;border-radius:6px;border:1px solid var(--line);background:var(--panel);color:var(--ink);cursor:pointer}
+#scalebar{height:6px;border:2px solid var(--ink);border-top:none;margin-top:3px}
+#toast{position:absolute;top:10px;left:50%;transform:translateX(-50%);background:var(--ink);color:var(--bg);padding:6px 12px;border-radius:6px;font-size:13px;opacity:0;transition:opacity .2s}
+#toast.on{opacity:1}
+@media (max-width:760px){
+  .app{grid-template-columns:1fr;grid-template-rows:55% 45%}
+  .panel{border-left:none;border-top:1px solid var(--line)}
+}
+@media (prefers-reduced-motion:reduce){#toast{transition:none}}
+</style>
+
+<div class="app">
+  <div id="view" aria-label="Karte">
+    <div id="world"></div>
+    <div class="zoom">
+      <button id="zin" aria-label="Hineinzoomen">+</button>
+      <button id="zout" aria-label="Herauszoomen">−</button>
+      <button id="zhome" aria-label="Auf Flugplatz zentrieren" title="Auf Flugplatz zentrieren">⌂</button>
+    </div>
+    <div class="hud">
+      <div class="chip" id="coord">E — · N —</div>
+      <div class="chip"><span id="scalelbl">100 m</span><div id="scalebar" style="width:100px"></div></div>
+    </div>
+    <div id="toast" role="status"></div>
+  </div>
+
+  <aside class="panel">
+    <div class="phead">
+      <h1>Luftbildatlas Lärz</h1>
+      <p>Ehemaliger Fliegerhorst Lärz (heute Müritz Airpark) · Aufklärung US7/0094/C vom 11.04.1945, einen Tag nach dem Angriff der 8th Air Force, über Luftbild 1953 und heute. ETRS89 / UTM 33.</p>
+    </div>
+    <div class="pbody">
+      <div class="sec"><h2>Ebenen</h2><div id="layers"></div></div>
+      <div id="adjbox" hidden>
+        <div class="t" id="adjtitle">Ebene anpassen</div>
+        <div class="ctl"><span>Ost/West (m)</span><input type="range" id="r_dx" min="-150" max="150" step="0.5"><input type="number" id="n_dx" step="0.5"></div>
+        <div class="ctl"><span>Nord/Süd (m)</span><input type="range" id="r_dy" min="-150" max="150" step="0.5"><input type="number" id="n_dy" step="0.5"></div>
+        <div class="ctl"><span>Drehung (°)</span><input type="range" id="r_rot" min="-15" max="15" step="0.05"><input type="number" id="n_rot" step="0.05"></div>
+        <div class="ctl"><span>Maßstab (%)</span><input type="range" id="r_sc" min="80" max="120" step="0.1"><input type="number" id="n_sc" step="0.1"></div>
+        <div class="btns">
+          <button class="b" id="dragmode" aria-pressed="false">Mit Maus ziehen</button>
+          <button class="b" id="adjreset">Zurücksetzen</button>
+          <button class="b" id="adjdone">Fertig</button>
+        </div>
+        <div class="note">Im Zieh-Modus verschiebt die Maus die Ebene statt der Karte. Pfeiltasten: 1 m, mit Umschalt 10 m.</div>
+      </div>
+      <div class="sec">
+        <h2>Ansicht</h2>
+        <div class="btns">
+          <button class="b" data-preset="1945">1945 über heute</button>
+          <button class="b" data-preset="1953">1945 gegen 1953</button>
+                    <button class="b" data-preset="heute">Nur heute</button>
+        </div>
+        <p class="note">Taste <b>H</b> gedrückt halten blendet die Bilder von 1945 kurz aus.</p>
+      </div>
+      <div class="sec">
+        <h2>Genauigkeit der Ausrichtung</h2>
+        <table class="q">
+          <tr><th>Bild</th><th>Passpunkte</th><th>Restfehler</th><th>m/Pixel*</th></tr>
+          <tr><td>3054</td><td>71 + Verknüpf.</td><td>1,8 m</td><td>0,195</td></tr>
+          <tr><td>4071</td><td>29 + Verknüpf.</td><td>2,9 m</td><td>0,183</td></tr>
+          <tr><td>4053</td><td>105 + 1.280</td><td>2,5 m</td><td>0,194</td></tr>
+        </table>
+        <p class="note">Passpunkte automatisch per Bildkorrelation gegen das Luftbild 1953 (Bahnen, Rollwege, Straßen, Kanal), Verknüpfungspunkte zwischen den Bildern vom selben Flug (Abweichung 3054↔4071 im Mittel 1,8 m, 4053↔4071 1,5 m), projektiv entzerrt. *im Originalscan. Die heutige Startbahn wurde nach 1945 umgebaut und passt deshalb nicht 1:1.</p>
+      </div>
+      <div class="sec">
+        <h2>Anpassungen</h2>
+        <div class="btns"><button class="b" id="export">Werte kopieren</button><button class="b" id="resetall">Alle zurücksetzen</button></div>
+        <textarea id="exportbox" hidden readonly style="width:100%;height:90px;margin-top:6px;font-family:var(--f-mono);font-size:11px"></textarea>
+        <p class="note">Eigene Verschiebungen bleiben in diesem Browser gespeichert.</p>
+      </div>
+      <div class="sec note">Quellen: NCAP Air Photo Finder (US7/0094/C, Frames 3054, 4053, 4071; © National Collection of Aerial Photography) · DOP M-V und DOP 1953 © GeoBasis-DE/M-V (CC BY 4.0) · ALKIS © GeoBasis-DE/M-V (CC BY 4.0). Keine Kampfmittelauskunft – für Bauvorhaben gilt allein die Auskunft des Munitionsbergungsdienstes M-V.</div>
+    </div>
+  </aside>
+</div>
+
+<script>
+const D={"frames": {"4071": {"w": 3907, "h": 4000, "H": [[0.2775551976335041, -0.2398043009421563, 1539.1153396668526], [0.23774214595057017, 0.28466585912424636, -295.54922803133263], [3.033069948012005e-06, -3.53271600096826e-06, 1.0]], "clip": [320, 240, 3690, 3615]}, "4053": {"w": 4000, "h": 3907, "H": [[0.2825046883051741, -0.23215000865109067, 1541.3039070978004], [0.20953070539388824, 0.2923342208696238, 639.0608963378667], [-1.2119405421321635e-05, -2.8086918949386513e-06, 1.0]], "clip": [235, 260, 3615, 3570]}, "3054": {"w": 4000, "h": 3907, "H": [[0.3160045177905764, -0.23942095431426627, 430.35614749391937], [0.24756108965172538, 0.30314710376242976, -191.01063050355384], [7.874872346411879e-06, -4.41056866739144e-06, 1.0]], "clip": [260, 210, 3615, 3590]}}};
+const LS='laerz-atlas-public-v1';
+const W=2400; // world: 1 unit = 1 m; x = E-348600, y = 5909100-N
+const view=document.getElementById('view'), world=document.getElementById('world');
+let store={}; try{store=JSON.parse(localStorage.getItem(LS)||'{}')}catch(e){store={}}
+function save(){try{localStorage.setItem(LS,JSON.stringify(store))}catch(e){}}
+
+const frameMat=H=>`matrix3d(${H[0][0]},${H[1][0]},0,${H[2][0]},${H[0][1]},${H[1][1]},0,${H[2][1]},0,0,1,0,${H[0][2]},${H[1][2]},0,${H[2][2]})`;
+const applyH=(H,x,y)=>{const w=H[2][0]*x+H[2][1]*y+H[2][2];return[(H[0][0]*x+H[0][1]*y+H[0][2])/w,(H[1][0]*x+H[1][1]*y+H[1][2])/w]};
+
+const LAYERS=[
+ {id:'heute',name:'Luftbild heute',sub:'DOP M-V',src:'dop_heute.jpg',kind:'full',on:true,op:1,adj:false,sw:'#6a8f4e'},
+ {id:'1953',name:'Luftbild 1953',sub:'alte Bahnen, unverändert',src:'dop_1953.jpg',kind:'full',on:false,op:1,adj:true,sw:'#9a9a92'},
+ {id:'3054',name:'1945 · Frame 3054',sub:'US7/0094/C',src:'f3054.jpg',kind:'frame',on:true,op:.85,adj:true,sw:'#d070d0'},
+ {id:'4071',name:'1945 · Frame 4071',sub:'US7/0094/C',src:'f4071.jpg',kind:'frame',on:true,op:.85,adj:true,sw:'#e0b000'},
+ {id:'4053',name:'1945 · Frame 4053',sub:'US7/0094/C',src:'f4053.jpg',kind:'frame',on:true,op:.85,adj:true,sw:'#30b070'},
+ {id:'alkis',name:'Flurstücke + Gebäude',sub:'ALKIS',src:'alkis.png',kind:'full',on:false,op:1,adj:false,sw:'#e8d000'},
+ {id:'foot',name:'Bildränder 1945',sub:'Umrisse der Aufnahmen',kind:'foot',on:false,op:1,adj:false,sw:'#ffffff'}
+];
+LAYERS.forEach(L=>{const s=store[L.id];if(s){L.on=s.on??L.on;L.op=s.op??L.op;L.a=s.a}L.a=L.a||{dx:0,dy:0,rot:0,sc:100}});
+
+// build layer DOM
+function centerOf(L){
+  if(L.kind==='frame'){const f=D.frames[L.id];return applyH(f.H,f.w/2,f.h/2)}
+  if(L.kind==='ek'){const e=D.ek;return[e.E0-348600+e.w*e.mpx/2,5909100-e.N0+e.h*e.mpy/2]}
+  return[1200,1200];
+}
+let svgFoot;
+LAYERS.forEach(L=>{
+  const d=document.createElement('div');d.className='lyr'+(L.kind==='full'?' full':'');L.el=d;
+  if(L.kind==='full'){const i=new Image();i.src=L.src;i.alt=L.name;d.appendChild(i)}
+  if(L.kind==='frame'){const f=D.frames[L.id];const i=new Image();i.src=L.src;i.alt=L.name;i.width=f.w;i.height=f.h;
+    i.style.width=f.w+'px';i.style.height=f.h+'px';i.style.transform=frameMat(f.H);
+    const c=f.clip;i.style.clipPath=`inset(${c[1]}px ${f.w-c[2]}px ${f.h-c[3]}px ${c[0]}px)`;d.appendChild(i)}
+  if(L.kind==='ek'){const e=D.ek;const i=new Image();i.src=L.src;i.alt=L.name;
+    Object.assign(i.style,{left:(e.E0-348600)+'px',top:(5909100-e.N0)+'px',width:(e.w*e.mpx)+'px',height:(e.h*e.mpy)+'px'});d.appendChild(i)}
+  if(L.kind==='vec'||L.kind==='foot'){
+    const s=document.createElementNS('http://www.w3.org/2000/svg','svg');s.setAttribute('viewBox','0 0 2400 2400');s.setAttribute('width','2400');s.setAttribute('height','2400');s.id=L.kind==='vec'?'vec':'';s.style.position='absolute';s.style.overflow='visible';
+    if(L.kind==='vec'){
+      let h='';
+      for(const [k,p] of Object.entries(D.parcels)){h+=`<polygon points="${p.map(q=>q.join(',')).join(' ')}" fill="rgba(224,48,48,.10)" stroke="#e03030" stroke-width="0.8" vector-effect="non-scaling-stroke" style="stroke-width:2px"/>`;
+        const cx=p.reduce((a,q)=>a+q[0],0)/p.length,cy=p.reduce((a,q)=>a+q[1],0)/p.length;
+        h+=`<text x="${cx}" y="${cy}" font-size="5" text-anchor="middle" fill="#fff" stroke="#000" stroke-width=".6" paint-order="stroke" font-family="JetBrains Mono,monospace">${k}</text>`}
+      h+=`<polygon points="${D.house.map(q=>q.join(',')).join(' ')}" fill="rgba(255,0,180,.35)" stroke="#d0008c" stroke-width="2" vector-effect="non-scaling-stroke"/>`;
+      D.craters.forEach(c=>{h+=`<circle cx="${c.x}" cy="${c.y}" r="6" fill="none" stroke="#2ad4ff" stroke-width="2" vector-effect="non-scaling-stroke"/><circle cx="${c.x}" cy="${c.y}" r="0.9" fill="#2ad4ff"/><text x="${c.x+8}" y="${c.y+1.5}" font-size="4.2" fill="#2ad4ff" stroke="#000" stroke-width=".5" paint-order="stroke" font-family="Barlow,sans-serif">${c.name}</text>`});
+      s.innerHTML=h;
+    } else {svgFoot=s}
+    d.appendChild(s)}
+  world.appendChild(d);
+});
+function drawFoot(){
+  let h='';const cols={3054:'#d070d0',4071:'#e0b000',4053:'#30b070'};
+  for(const id of ['3054','4071','4053']){const L=LAYERS.find(x=>x.id===id),f=D.frames[id],c=f.clip;
+    const pts=[[c[0],c[1]],[c[2],c[1]],[c[2],c[3]],[c[0],c[3]]].map(p=>adjPoint(L,applyH(f.H,p[0],p[1])));
+    h+=`<polygon points="${pts.map(p=>p.join(',')).join(' ')}" fill="none" stroke="${cols[id]}" stroke-width="2" vector-effect="non-scaling-stroke"/><text x="${pts[0][0]}" y="${pts[0][1]-4}" font-size="14" fill="${cols[id]}" stroke="#000" stroke-width="1" paint-order="stroke" font-family="Barlow Condensed,sans-serif">Frame ${id}</text>`}
+  svgFoot.innerHTML=h;
+}
+function adjPoint(L,[x,y]){const a=L.a,[cx,cy]=centerOf(L),s=a.sc/100,r=a.rot*Math.PI/180;
+  const ux=(x-cx)*s,uy=(y-cy)*s;return[cx+ux*Math.cos(r)-uy*Math.sin(r)+a.dx,cy+ux*Math.sin(r)+uy*Math.cos(r)+a.dy]}
+function applyLayer(L){
+  L.el.hidden=!L.on;L.el.style.opacity=L.op;
+  if(L.adj){const a=L.a,[cx,cy]=centerOf(L);
+    L.el.style.transformOrigin=`${cx}px ${cy}px`;
+    L.el.style.transform=`translate(${a.dx}px,${a.dy}px) rotate(${a.rot}deg) scale(${a.sc/100})`}
+}
+
+// panel
+const host=document.getElementById('layers');let selected=null;
+function persist(L){store[L.id]={on:L.on,op:L.op,a:L.a};save()}
+LAYERS.slice().reverse().forEach(L=>{
+  const r=document.createElement('div');r.className='row';L.row=r;
+  r.innerHTML=`<input type="checkbox" id="cb_${L.id}" ${L.on?'checked':''}>
+   <label for="cb_${L.id}"><span class="nm"><span class="sw" style="background:${L.sw}"></span>${L.name}</span><span class="sub">${L.sub}</span></label>
+   ${L.adj?`<button class="adj" id="ad_${L.id}" aria-pressed="false">Anpassen</button>`:'<span></span>'}
+   ${(L.kind!=='vec'&&L.kind!=='foot')?`<input type="range" id="op_${L.id}" min="0" max="1" step="0.05" value="${L.op}" aria-label="Deckkraft ${L.name}">`:''}`;
+  host.appendChild(r);
+  r.querySelector('input[type=checkbox]').onchange=e=>{L.on=e.target.checked;applyLayer(L);persist(L)};
+  const op=r.querySelector('input[type=range]');if(op)op.oninput=e=>{L.op=+e.target.value;applyLayer(L);persist(L)};
+  if(L.adj)r.querySelector('.adj').onclick=()=>select(selected===L?null:L);
+});
+LAYERS.forEach(applyLayer);drawFoot();
+
+const adjbox=document.getElementById('adjbox');
+const F=[['dx',v=>v],['dy',v=>v],['rot',v=>v],['sc',v=>v]];
+function select(L){
+  selected=L;LAYERS.forEach(x=>{if(x.row){x.row.classList.toggle('sel',x===L);const b=x.row.querySelector('.adj');if(b)b.setAttribute('aria-pressed',x===L)}});
+  adjbox.hidden=!L;if(!L){setDrag(false);return}
+  document.getElementById('adjtitle').textContent=L.name+' anpassen';
+  if(!L.on){L.on=true;L.row.querySelector('input[type=checkbox]').checked=true;applyLayer(L)}
+  syncAdj();
+}
+function syncAdj(){if(!selected)return;const a=selected.a;
+  for(const [k] of F){document.getElementById('r_'+k).value=k==='dy'?-a[k]:a[k];document.getElementById('n_'+k).value=+(k==='dy'?-a[k]:a[k]).toFixed(2)}}
+for(const [k] of F){
+  const set=v=>{if(!selected)return;v=+v;if(isNaN(v))return;selected.a[k]=k==='dy'?-v:v;applyLayer(selected);drawFoot();persist(selected);syncAdj()};
+  document.getElementById('r_'+k).oninput=e=>set(e.target.value);
+  document.getElementById('n_'+k).onchange=e=>set(e.target.value);
+}
+document.getElementById('adjreset').onclick=()=>{if(!selected)return;selected.a={dx:0,dy:0,rot:0,sc:100};applyLayer(selected);drawFoot();persist(selected);syncAdj();toast('Ebene zurückgesetzt')};
+document.getElementById('adjdone').onclick=()=>select(null);
+let dragLayer=false;const dm=document.getElementById('dragmode');
+function setDrag(v){dragLayer=v;dm.setAttribute('aria-pressed',v);view.classList.toggle('movelayer',v)}
+dm.onclick=()=>setDrag(!dragLayer);
+
+// view transform
+let z=1,tx=0,ty=0;
+function render(){world.style.transform=`translate(${tx}px,${ty}px) scale(${z})`;
+  const target=view.clientWidth/6/z;const nice=[1,2,5,10,20,25,50,100,200,250,500,1000];let m=nice[0];for(const n of nice)if(n<=target)m=n;
+  document.getElementById('scalebar').style.width=(m*z)+'px';document.getElementById('scalelbl').textContent=m+' m'}
+function home(){const cx=1250,cy=1150,span=900;z=Math.min(view.clientWidth,view.clientHeight)/span;tx=view.clientWidth/2-cx*z;ty=view.clientHeight/2-cy*z;render()}
+function zoomAt(f,px,py){const nz=Math.max(.15,Math.min(40,z*f));f=nz/z;tx=px-(px-tx)*f;ty=py-(py-ty)*f;z=nz;render()}
+view.addEventListener('wheel',e=>{e.preventDefault();const r=view.getBoundingClientRect();zoomAt(Math.exp(-e.deltaY*0.0015),e.clientX-r.left,e.clientY-r.top)},{passive:false});
+document.getElementById('zin').onclick=()=>zoomAt(1.5,view.clientWidth/2,view.clientHeight/2);
+document.getElementById('zout').onclick=()=>zoomAt(1/1.5,view.clientWidth/2,view.clientHeight/2);
+document.getElementById('zhome').onclick=home;
+const ptrs=new Map();let last=null,pinch=null;
+view.addEventListener('pointerdown',e=>{if(e.target.closest('.zoom,.chip'))return;view.setPointerCapture(e.pointerId);ptrs.set(e.pointerId,[e.clientX,e.clientY]);last=[e.clientX,e.clientY];if(!dragLayer)view.classList.add('drag');
+  if(ptrs.size===2){const [a,b]=[...ptrs.values()];pinch={d:Math.hypot(a[0]-b[0],a[1]-b[1])}}});
+view.addEventListener('pointermove',e=>{
+  const r=view.getBoundingClientRect();const wx=(e.clientX-r.left-tx)/z,wy=(e.clientY-r.top-ty)/z;
+  document.getElementById('coord').textContent=`E ${(348600+wx).toFixed(1)} · N ${(5909100-wy).toFixed(1)}`;
+  if(!ptrs.has(e.pointerId))return;ptrs.set(e.pointerId,[e.clientX,e.clientY]);
+  if(ptrs.size===2&&pinch){const [a,b]=[...ptrs.values()];const d=Math.hypot(a[0]-b[0],a[1]-b[1]);zoomAt(d/pinch.d,(a[0]+b[0])/2-r.left,(a[1]+b[1])/2-r.top);pinch.d=d;return}
+  const dx=e.clientX-last[0],dy=e.clientY-last[1];last=[e.clientX,e.clientY];
+  if(dragLayer&&selected){selected.a.dx+=dx/z;selected.a.dy+=dy/z;applyLayer(selected);drawFoot();syncAdj()}
+  else{tx+=dx;ty+=dy;render()}});
+const up=e=>{ptrs.delete(e.pointerId);if(ptrs.size<2)pinch=null;view.classList.remove('drag');if(dragLayer&&selected)persist(selected)};
+view.addEventListener('pointerup',up);view.addEventListener('pointercancel',up);
+window.addEventListener('resize',render);
+
+// keys
+const frames=()=>LAYERS.filter(L=>L.kind==='frame');let hHeld=false;
+window.addEventListener('keydown',e=>{if(e.target.matches('input,textarea'))return;
+  if(e.key==='h'||e.key==='H'){if(!hHeld){hHeld=true;frames().forEach(L=>L.el.hidden=true)}}
+  if(selected&&e.key.startsWith('Arrow')){const s=e.shiftKey?10:1;const a=selected.a;
+    if(e.key==='ArrowLeft')a.dx-=s;if(e.key==='ArrowRight')a.dx+=s;if(e.key==='ArrowUp')a.dy-=s;if(e.key==='ArrowDown')a.dy+=s;
+    e.preventDefault();applyLayer(selected);drawFoot();persist(selected);syncAdj()}});
+window.addEventListener('keyup',e=>{if(e.key==='h'||e.key==='H'){hHeld=false;frames().forEach(applyLayer)}});
+
+// presets
+const PRE={
+ '1945':{heute:[1,1],'1953':[0],'3054':[1,.85],'4071':[1,.85],'4053':[1,.85],alkis:[0],foot:[1]},
+ '1953':{heute:[0],'1953':[1,1],'3054':[1,.6],'4071':[1,.6],'4053':[1,.6],alkis:[0],foot:[0]},
+ 'heute':{heute:[1,1],'1953':[0],'3054':[0],'4071':[0],'4053':[0],alkis:[1,1],foot:[0]}};
+document.querySelectorAll('[data-preset]').forEach(b=>b.onclick=()=>{const p=PRE[b.dataset.preset];
+  LAYERS.forEach(L=>{const v=p[L.id];if(!v)return;L.on=!!v[0];if(v[1]!=null)L.op=v[1];applyLayer(L);persist(L);
+    L.row.querySelector('input[type=checkbox]').checked=L.on;const o=L.row.querySelector('input[type=range]');if(o)o.value=L.op});
+  toast(b.textContent)});
+
+// export / reset
+document.getElementById('export').onclick=()=>{const o={};LAYERS.filter(L=>L.adj).forEach(L=>{const a=L.a;if(a.dx||a.dy||a.rot||a.sc!==100)o[L.id]={ost_m:+a.dx.toFixed(2),nord_m:+(-a.dy).toFixed(2),drehung_grad:a.rot,massstab_proz:a.sc}});
+  const t=JSON.stringify(o,null,1)||'{}';const box=document.getElementById('exportbox');box.value=Object.keys(o).length?t:'Keine Anpassungen.';box.hidden=false;
+  navigator.clipboard?.writeText(box.value).then(()=>toast('In die Zwischenablage kopiert'),()=>{box.select();toast('Text markiert, bitte kopieren')})};
+document.getElementById('resetall').onclick=()=>{LAYERS.forEach(L=>{L.a={dx:0,dy:0,rot:0,sc:100};applyLayer(L);persist(L)});drawFoot();syncAdj();toast('Alle Anpassungen zurückgesetzt')};
+let tt;function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('on');clearTimeout(tt);tt=setTimeout(()=>t.classList.remove('on'),1600)}
+
+home();
+</script>
