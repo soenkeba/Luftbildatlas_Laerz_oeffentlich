@@ -149,15 +149,33 @@ table.q td:first-child,table.q th:first-child{text-align:left}
         <div class="note">Im Zieh-Modus verschiebt die Maus die Ebene statt der Karte. Pfeiltasten: 1 m, mit Umschalt 10 m.</div>
       </div>
       <div class="sec">
-        <h2>Ansicht</h2>
+        <h2>Voreinstellungen</h2>
         <div class="btns">
-          <button class="b" data-preset="1945">1945 über heute</button>
+          <button class="b" data-preset="heute">Heute + Grundst&uuml;cke</button>
+          <button class="b" data-preset="1945">1945 &uuml;ber heute</button>
           <button class="b" data-preset="1953">1945 gegen 1953</button>
           <button class="b" data-preset="1991">1991 (Wende)</button>
+          <button class="b" data-preset="ddr">DDR-Karte + 1945</button>
           <button class="b" data-preset="messtisch">Messtischblatt + 1945</button>
-          <button class="b" data-preset="heute">Nur heute</button>
+          <button class="b" data-preset="relief">Gel&auml;ndemodell + 1945</button>
+          <button class="b" data-preset="topo">Topo + Grundst&uuml;cke</button>
         </div>
-        <p class="note" style="margin-top:6px">Taste <b>H</b> gedrückt halten blendet die Bilder von 1945 kurz aus.</p>
+      </div>
+      <div class="sec">
+        <h2>Anleitung</h2>
+        <div class="note" style="line-height:1.6">
+          <b>Karte bewegen</b> &ndash; Maus ziehen oder mit zwei Fingern wischen. Mausrad oder Pinch zum Zoomen.<br>
+          <b>Ebenen</b> &ndash; Im Abschnitt oben k&ouml;nnen Kartenebenen per Checkbox ein- und ausgeblendet werden. Der Schieberegler steuert die Durchsichtigkeit. &uuml;ber <b>&uarr;&darr;</b> &auml;ndern Sie die Zeichenreihenfolge, &uuml;ber <b>i</b> sehen Sie die Herkunft der Daten.<br>
+          <b>Anpassen</b> &ndash; Bei einigen Ebenen (1945, 1953, 1991) kann die Position manuell korrigiert werden: Klicken Sie &bdquo;Anpassen&ldquo; und verschieben Sie mit den Reglern oder Pfeiltasten.<br>
+          <b>Messen</b> &ndash; Klicken Sie &bdquo;Messen&ldquo; in der Werkzeugleiste (oder Taste <b>M</b>). Klicken Sie auf die Karte um Messpunkte zu setzen &ndash; die Entfernung zwischen den Punkten wird in Metern angezeigt. Doppelklick beendet die Messung.<br>
+          <b>Markieren</b> &ndash; Klicken Sie &bdquo;Markieren&ldquo; (oder Taste <b>P</b>) und setzen Sie Punkte auf der Karte. Die UTM-Koordinaten werden am Punkt angezeigt.<br>
+          <b>Standort</b> &ndash; Auf Mobilger&auml;ten zeigt &bdquo;Standort&ldquo; Ihre GPS-Position als blauen Punkt auf der Karte. Erneutes Tippen zentriert die Karte auf Sie.<br>
+          <b>Voreinstellungen</b> &ndash; Die Kn&ouml;pfe oben schalten schnell zwischen n&uuml;tzlichen Ebenen-Kombinationen um.<br>
+          <b>Sitzung speichern</b> &ndash; Unter &bdquo;Sitzung speichern&ldquo; k&ouml;nnen Sie alle Einstellungen, Messungen und Marker als JSON-Datei herunterladen und sp&auml;ter oder auf einem anderen Ger&auml;t wiederherstellen.<br>
+          <b>Bild-Export</b> &ndash; Speichert den aktuellen Kartenausschnitt als PNG oder JPG.<br>
+          <b>Taste H</b> &ndash; Gedr&uuml;ckt halten blendet die 1945er Bilder kurz aus, um die darunterliegende Ebene zu sehen.<br>
+          <b>Escape</b> &ndash; Bricht die aktuelle Messung ab oder schlie&szlig;t das Anpassen-Fenster.
+        </div>
       </div>
       <div class="sec">
         <h2>Bild-Export</h2>
@@ -285,11 +303,11 @@ const LAYERS=[
    desc:'Historisches Orthophoto aus CIR-Infrarot-Befliegung 1990/91 (Falschfarben). 0,4 m/px. Zeigt den Flugplatz kurz nach der Wende, noch mit militärischer Infrastruktur. Amtlich georeferenziert. Quelle: GeoBasis-DE/M-V (CC BY 4.0).'},
   {id:'1953',name:'Luftbild 1953',sub:'DOP M-V, s/w',src:'dop_1953.jpg',kind:'full',on:false,op:1,adj:true,sw:'#9a9a92',
    desc:'Historisches Orthophoto aus Befliegung 1953, Schwarzweiß. 1,0 m/px. Referenzbild für die Georeferenzierung der 1945er Aufnahmen (Bahnen und Rollwege noch identisch). Amtlich georeferenziert. Quelle: GeoBasis-DE/M-V (CC BY 4.0).'},
-  {id:'3054',name:'1945 - Frame 3054',sub:'US7/0094/C',src:'f3054.jpg',kind:'frame',on:true,op:.85,adj:true,sw:'#d070d0',
+  {id:'3054',name:'1945 - Frame 3054',sub:'US7/0094/C',src:'f3054.jpg',kind:'frame',on:false,op:.85,adj:true,sw:'#d070d0',
    desc:'Luftaufklärung vom 11.04.1945 (einen Tag nach dem Angriff der 8th Air Force), Frame 3054. Georeferenziert per automatischer Bildkorrelation gegen DOP 1953 an 71 Passpunkten + Verknüpfungspunkte zu Frame 4071. Projektiv entzerrt (RANSAC). Restfehler 1,8 m, 0,195 m/px im Original. Quelle: NCAP.'},
-  {id:'4071',name:'1945 - Frame 4071',sub:'US7/0094/C',src:'f4071.jpg',kind:'frame',on:true,op:.85,adj:true,sw:'#e0b000',
+  {id:'4071',name:'1945 - Frame 4071',sub:'US7/0094/C',src:'f4071.jpg',kind:'frame',on:false,op:.85,adj:true,sw:'#e0b000',
    desc:'Luftaufklärung vom 11.04.1945, Frame 4071 (zentrales Bild). 29 Passpunkte gegen DOP 1953 + Verknüpfungspunkte zu Frames 3054 und 4053. Projektiv entzerrt. Restfehler 2,9 m, 0,183 m/px. Quelle: NCAP.'},
-  {id:'4053',name:'1945 - Frame 4053',sub:'US7/0094/C',src:'f4053.jpg',kind:'frame',on:true,op:.85,adj:true,sw:'#30b070',
+  {id:'4053',name:'1945 - Frame 4053',sub:'US7/0094/C',src:'f4053.jpg',kind:'frame',on:false,op:.85,adj:true,sw:'#30b070',
    desc:'Luftaufklärung vom 11.04.1945, Frame 4053. 105 Passpunkte + 1.280 Verknüpfungspunkte zu Frame 4071. Projektiv entzerrt. Restfehler 2,5 m, 0,194 m/px. Quelle: NCAP.'},
   {id:'tk25ddr',name:'TK25 DDR-Ausgabe',sub:'1981-1987',src:'tk25_ddr.jpg',kind:'full',on:false,op:1,adj:false,sw:'#b71c1c',
    desc:'Topographische Karte 1:25.000, DDR-Ausgabe (Ausgabestaat), Aufnahmen 1981-1987. Zeigt den Flugplatz als militärisches Sperrgebiet der NVA/GSSD. Quelle: GeoBasis-DE/M-V (CC BY 4.0).'},
@@ -297,7 +315,7 @@ const LAYERS=[
    desc:'Preußische Landesaufnahme 1:25.000 (Messtischblatt). Erstausgabe 1877-1889, Nachträge bis 1943. Zeigt die Landschaft vor/während des Flugplatzbetriebs. Quelle: GeoBasis-DE/M-V (CC BY 4.0).'},
   {id:'dgm',name:'Geländemodell',sub:'DGM Schummerung',src:'dgm.png',kind:'full',on:false,op:.7,adj:false,sw:'#4e342e',
    desc:'Digitales Geländemodell als Schummerungsdarstellung. Aus Laserscanning (LiDAR), Bodenauflösung 1-2 m. Zeigt Geländeformen, Senken und Erhebungen. Quelle: GeoBasis-DE/M-V (CC BY 4.0).'},
-  {id:'alkis',name:'Flurstücke + Gebäude',sub:'ALKIS',src:'alkis.png',kind:'full',on:false,op:1,adj:false,sw:'#e8d000',
+  {id:'alkis',name:'Flurstücke + Gebäude',sub:'ALKIS',src:'alkis.png',kind:'full',on:true,op:1,adj:false,sw:'#e8d000',
    desc:'Amtliches Liegenschaftskataster (ALKIS): Flurstücksgrenzen und Gebäudegrundrisse. Amtlich georeferenziert. Quelle: GeoBasis-DE/M-V (CC BY 4.0).'},
   {id:'foot',name:'Bildränder 1945',sub:'Umrisse der drei Aufnahmen',kind:'foot',on:false,op:1,adj:false,sw:'#ffffff',
    desc:'Zeigt die Umrisse (Clip-Bereiche) der drei Luftaufklärungsbilder von 1945.'}
@@ -551,11 +569,14 @@ document.getElementById('t_clear').onclick=()=>{measures=[];curMeasure=[];marker
 const off=id=>[0],on=(id,op)=>[1,op];
 const allOff=Object.fromEntries(LAYERS.map(L=>[L.id,[0]]));
 const PRE={
+ 'heute':{...allOff,heute:[1,1],alkis:[1,1]},
  '1945':{...allOff,heute:[1,1],'3054':[1,.85],'4071':[1,.85],'4053':[1,.85],foot:[1]},
  '1953':{...allOff,'1953':[1,1],'3054':[1,.6],'4071':[1,.6],'4053':[1,.6]},
  '1991':{...allOff,'1991':[1,1],'3054':[1,.5],'4071':[1,.5],'4053':[1,.5]},
+ 'ddr':{...allOff,tk25ddr:[1,1],'3054':[1,.6],'4071':[1,.6],'4053':[1,.6],foot:[1]},
  'messtisch':{...allOff,tk25m:[1,1],'3054':[1,.65],'4071':[1,.65],'4053':[1,.65],foot:[1]},
- 'heute':{...allOff,heute:[1,1],alkis:[1,1]}
+ 'relief':{...allOff,dgm:[1,.8],'3054':[1,.7],'4071':[1,.7],'4053':[1,.7]},
+ 'topo':{...allOff,topo:[1,1],alkis:[1,.6]}
 };
 document.querySelectorAll('[data-preset]').forEach(b=>b.onclick=()=>{const p=PRE[b.dataset.preset];
   LAYERS.forEach(L=>{const v=p[L.id];if(!v)return;L.on=!!v[0];if(v[1]!=null)L.op=v[1];applyLayer(L);persist(L);
