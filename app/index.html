@@ -151,14 +151,20 @@ table.q td:first-child,table.q th:first-child{text-align:left}
       <div class="sec">
         <h2>Voreinstellungen</h2>
         <div class="btns">
-          <button class="b" data-preset="heute">Heute + Grundst&uuml;cke</button>
+          <button class="b pri" data-preset="heute">Heute + Grundst&uuml;cke</button>
           <button class="b" data-preset="1945">1945 &uuml;ber heute</button>
+          <button class="b" data-preset="1945alk">1945 + Grundst&uuml;cke</button>
           <button class="b" data-preset="1953">1945 gegen 1953</button>
           <button class="b" data-preset="1991">1991 (Wende)</button>
+          <button class="b" data-preset="1991h">1991 &uuml;ber heute</button>
           <button class="b" data-preset="ddr">DDR-Karte + 1945</button>
           <button class="b" data-preset="messtisch">Messtischblatt + 1945</button>
+          <button class="b" data-preset="messtischh">Messtischblatt &uuml;ber heute</button>
           <button class="b" data-preset="relief">Gel&auml;ndemodell + 1945</button>
+          <button class="b" data-preset="reliefh">Gel&auml;ndemodell + heute</button>
           <button class="b" data-preset="topo">Topo + Grundst&uuml;cke</button>
+          <button class="b" data-preset="google">Google Satellite</button>
+          <button class="b" data-preset="alle1945">Alle Ebenen 1945</button>
         </div>
       </div>
       <div class="sec">
@@ -573,15 +579,27 @@ document.getElementById('t_clear').onclick=()=>{measures=[];curMeasure=[];marker
 // ── Presets ───────────────────────────────────────────────────────────
 const off=id=>[0],on=(id,op)=>[1,op];
 const allOff=Object.fromEntries(LAYERS.map(L=>[L.id,[0]]));
+const f45={...allOff,'3054':[1,.85],'4071':[1,.85],'4053':[1,.85]};
 const PRE={
- 'heute':{...allOff,heute:[1,1],alkis:[1,1]},
- '1945':{...allOff,heute:[1,1],'3054':[1,.85],'4071':[1,.85],'4053':[1,.85],foot:[1]},
- '1953':{...allOff,'1953':[1,1],'3054':[1,.6],'4071':[1,.6],'4053':[1,.6]},
- '1991':{...allOff,'1991':[1,1],'3054':[1,.5],'4071':[1,.5],'4053':[1,.5]},
- 'ddr':{...allOff,tk25ddr:[1,1],'3054':[1,.6],'4071':[1,.6],'4053':[1,.6],foot:[1]},
- 'messtisch':{...allOff,tk25m:[1,1],'3054':[1,.65],'4071':[1,.65],'4053':[1,.65],foot:[1]},
- 'relief':{...allOff,dgm:[1,.8],'3054':[1,.7],'4071':[1,.7],'4053':[1,.7]},
- 'topo':{...allOff,topo:[1,1],alkis:[1,.6]}
+ // Heute
+ 'heute':   {...allOff,heute:[1,1],alkis:[1,1]},
+ 'topo':    {...allOff,topo:[1,1],alkis:[1,.6]},
+ 'google':  {...allOff,google:[1,1],alkis:[1,.7]},
+ // 1945 Kombinationen
+ '1945':    {...f45,heute:[1,1],foot:[1]},
+ '1945alk': {...f45,heute:[1,1],alkis:[1,.8],foot:[1]},
+ '1953':    {...allOff,'1953':[1,1],'3054':[1,.6],'4071':[1,.6],'4053':[1,.6]},
+ // Historisch
+ '1991':    {...allOff,'1991':[1,1],'3054':[1,.5],'4071':[1,.5],'4053':[1,.5]},
+ '1991h':   {...allOff,heute:[1,1],'1991':[1,.6]},
+ 'ddr':     {...allOff,tk25ddr:[1,1],'3054':[1,.6],'4071':[1,.6],'4053':[1,.6],foot:[1]},
+ 'messtisch':  {...allOff,tk25m:[1,1],'3054':[1,.65],'4071':[1,.65],'4053':[1,.65],foot:[1]},
+ 'messtischh': {...allOff,heute:[1,1],tk25m:[1,.5]},
+ // Gelände
+ 'relief':  {...allOff,dgm:[1,.8],'3054':[1,.7],'4071':[1,.7],'4053':[1,.7]},
+ 'reliefh': {...allOff,heute:[1,1],dgm:[1,.5]},
+ // Alles 1945
+ 'alle1945':{...f45,heute:[1,1],'1953':[1,.3],alkis:[1,.5],foot:[1],dgm:[1,.3]}
 };
 document.querySelectorAll('[data-preset]').forEach(b=>b.onclick=()=>{const p=PRE[b.dataset.preset];
   LAYERS.forEach(L=>{const v=p[L.id];if(!v)return;L.on=!!v[0];if(v[1]!=null)L.op=v[1];applyLayer(L);persist(L);
