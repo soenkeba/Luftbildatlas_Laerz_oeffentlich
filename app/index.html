@@ -160,15 +160,32 @@ table.q td:first-child,table.q th:first-child{text-align:left}
         <p class="note" style="margin-top:6px">Taste <b>H</b> gedrückt halten blendet die Bilder von 1945 kurz aus.</p>
       </div>
       <div class="sec">
-        <h2>Export</h2>
+        <h2>Bild-Export</h2>
         <div class="btns">
           <button class="b" id="exp_png">PNG speichern</button>
           <button class="b" id="exp_jpg">JPG speichern</button>
-          <button class="b" id="export">Anpassungen kopieren</button>
-          <button class="b" id="resetall">Alle zurücksetzen</button>
         </div>
+        <p class="note">Exportiert den aktuellen Kartenausschnitt mit allen sichtbaren Ebenen und Messungen als Bilddatei.</p>
+      </div>
+      <div class="sec">
+        <h2>Sitzung speichern / laden</h2>
+        <p class="note" style="margin-bottom:6px">Speichert alle Einstellungen als JSON-Datei, um sie sp&auml;ter oder auf einem anderen Ger&auml;t wiederherzustellen. Enthalten sind:</p>
+        <ul class="note" style="margin:0 0 8px 16px;padding:0">
+          <li><b>Ebenen</b> &ndash; welche sichtbar sind, Deckkraft, Reihenfolge</li>
+          <li><b>Verschiebungen</b> &ndash; manuelle Korrekturen (Ost/West, Nord/S&uuml;d, Drehung, Ma&szlig;stab)</li>
+          <li><b>Messungen</b> &ndash; alle Distanzmessungen (Punkte und Linien)</li>
+          <li><b>Marker</b> &ndash; gesetzte Markierungspunkte mit Koordinaten</li>
+          <li><b>Kartenansicht</b> &ndash; aktuelle Zoom-Stufe und Position</li>
+        </ul>
+        <div class="btns">
+          <button class="b pri" id="sess_save">Sitzung als JSON speichern</button>
+          <button class="b" id="sess_load">Sitzung aus JSON laden</button>
+          <button class="b" id="export">Anpassungen kopieren</button>
+          <button class="b" id="resetall">Alle zur&uuml;cksetzen</button>
+        </div>
+        <input type="file" id="sess_file" accept=".json,application/json" hidden>
         <textarea id="exportbox" hidden readonly style="width:100%;height:60px;margin-top:6px;font-family:var(--f-mono);font-size:11px"></textarea>
-        <p class="note">Exportiert den aktuellen Kartenausschnitt mit allen sichtbaren Ebenen und Messungen. Eigene Verschiebungen bleiben in diesem Browser gespeichert.</p>
+        <p class="note" style="margin-top:6px">Die JSON-Datei enth&auml;lt nur Einstellungen, keine Bilddaten. Sie kann an andere Personen weitergegeben werden &ndash; diese ben&ouml;tigen lediglich den gleichen Atlas.</p>
       </div>
       <div class="sec">
         <h2>Genauigkeit</h2>
@@ -596,6 +613,73 @@ function exportImage(fmt){
 }
 document.getElementById('exp_png').onclick=()=>exportImage('png');
 document.getElementById('exp_jpg').onclick=()=>exportImage('jpg');
+
+// ── Sitzung speichern / laden ──────────────────────────────────────────
+function buildSession(){
+  const layers={};
+  LAYERS.forEach((L,i)=>{
+    layers[L.id]={on:L.on,op:L.op,order:i};
+    const a=L.a;
+    if(a.dx||a.dy||a.rot||a.sc!==100)
+      layers[L.id].adj={dx:+a.dx.toFixed(2),dy:+a.dy.toFixed(2),rot:+a.rot.toFixed(2),sc:+a.sc.toFixed(1)};
+  });
+  return{
+    _info:'Luftbildatlas Lärz – Sitzungsdatei. Enthält Ebenen-Einstellungen, Messungen und Marker. Kann über "Sitzung aus JSON laden" wiederhergestellt werden.',
+    version:2,
+    datum:new Date().toISOString(),
+    ansicht:{zoom:z,tx:tx,ty:ty},
+    ebenen:layers,
+    messungen:measures,
+    marker:markers
+  };
+}
+function applySession(s){
+  if(!s||!s.version){toast('Ungültige Sitzungsdatei');return}
+  // Ebenen wiederherstellen
+  if(s.ebenen){
+    for(const L of LAYERS){
+      const e=s.ebenen[L.id];if(!e)continue;
+      if(e.on!==undefined){L.on=e.on;L.row.querySelector('input[type=checkbox]').checked=L.on}
+      if(e.op!==undefined){L.op=e.op;L.row.querySelector('input[type=range]').value=L.op}
+      if(e.adj){L.a={dx:e.adj.dx||0,dy:e.adj.dy||0,rot:e.adj.rot||0,sc:e.adj.sc||100}}
+      applyLayer(L);persist(L);
+    }
+    // Reihenfolge wiederherstellen
+    const ordered=Object.entries(s.ebenen).filter(([,v])=>v.order!==undefined).sort((a,b)=>a[1].order-b[1].order);
+    if(ordered.length>0){
+      const idOrder=ordered.map(([id])=>id);
+      LAYERS.sort((a,b)=>{const ai=idOrder.indexOf(a.id),bi=idOrder.indexOf(b.id);return(ai===-1?999:ai)-(bi===-1?999:bi)});
+      rebuildLayerOrder();
+    }
+  }
+  // Messungen + Marker
+  if(s.messungen){measures=s.messungen}
+  if(s.marker){markers=s.marker}
+  persistAnno();
+  // Ansicht
+  if(s.ansicht){z=s.ansicht.zoom||z;tx=s.ansicht.tx||tx;ty=s.ansicht.ty||ty}
+  drawFoot();syncAdj();render();
+  toast('Sitzung geladen ('+new Date(s.datum).toLocaleDateString('de')+')');
+}
+document.getElementById('sess_save').onclick=()=>{
+  const json=JSON.stringify(buildSession(),null,2);
+  const blob=new Blob([json],{type:'application/json'});
+  const a=document.createElement('a');
+  a.download=`luftbildatlas_laerz_${new Date().toISOString().slice(0,10)}.json`;
+  a.href=URL.createObjectURL(blob);a.click();URL.revokeObjectURL(a.href);
+  toast('Sitzung gespeichert');
+};
+const sessFile=document.getElementById('sess_file');
+document.getElementById('sess_load').onclick=()=>sessFile.click();
+sessFile.onchange=e=>{
+  const f=e.target.files[0];if(!f)return;
+  const reader=new FileReader();
+  reader.onload=ev=>{
+    try{applySession(JSON.parse(ev.target.result))}
+    catch(err){toast('Fehler beim Laden: '+err.message)}
+  };
+  reader.readAsText(f);sessFile.value='';
+};
 
 // Anpassungen kopieren / zurücksetzen
 document.getElementById('export').onclick=()=>{const o={};LAYERS.filter(L=>L.adj).forEach(L=>{const a=L.a;if(a.dx||a.dy||a.rot||a.sc!==100)o[L.id]={ost_m:+a.dx.toFixed(2),nord_m:+(-a.dy).toFixed(2),drehung_grad:a.rot,massstab_proz:a.sc}});
