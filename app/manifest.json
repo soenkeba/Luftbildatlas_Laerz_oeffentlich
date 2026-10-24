@@ -1,13 +1,15 @@
 {
-  "name": "Luftbildatlas Lärz",
-  "short_name": "Lärz Atlas",
+  "name": "Luftbildatlas Lärz – Müritz Airpark",
+  "short_name": "Müritz Airpark",
   "description": "Historische und aktuelle Karten des ehemaligen Fliegerhorsts Lärz im Vergleich.",
   "start_url": "./index.html",
   "display": "standalone",
   "orientation": "any",
-  "background_color": "#1d2321",
+  "background_color": "#1a2520",
   "theme_color": "#d9a400",
   "icons": [
-    {"src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any"}
+    {"src": "icon.svg", "sizes": "any", "type": "image/svg+xml"},
+    {"src": "icon-512.png", "sizes": "512x512", "type": "image/png"},
+    {"src": "icon-180.png", "sizes": "180x180", "type": "image/png"}
   ]
 }

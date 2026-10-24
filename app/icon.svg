@@ -1,25 +1,24 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
-  <!-- Hintergrund -->
   <rect width="512" height="512" rx="96" fill="#1a2520"/>
   <!-- Startbahn -->
-  <rect x="120" y="100" width="40" height="340" rx="4" fill="#555" transform="rotate(-15 256 256)"/>
-  <!-- Mittellinie Bahn -->
-  <line x1="140" y1="130" x2="140" y2="410" stroke="#d9a400" stroke-width="3" stroke-dasharray="16 10" transform="rotate(-15 256 256)"/>
+  <rect x="120" y="80" width="40" height="320" rx="4" fill="#555" transform="rotate(-15 256 240)"/>
+  <line x1="140" y1="110" x2="140" y2="370" stroke="#d9a400" stroke-width="3" stroke-dasharray="16 10" transform="rotate(-15 256 240)"/>
   <!-- Rollweg -->
-  <path d="M180 300 Q220 280 260 310 Q300 340 340 300" fill="none" stroke="#555" stroke-width="14" stroke-linecap="round"/>
-  <!-- Querwindbahn (kürzer) -->
-  <rect x="180" y="220" width="200" height="28" rx="4" fill="#444" transform="rotate(30 280 234)"/>
-  <line x1="190" y1="234" x2="370" y2="234" stroke="#d9a400" stroke-width="2" stroke-dasharray="12 8" transform="rotate(30 280 234)"/>
+  <path d="M180 280 Q220 260 260 290 Q300 320 340 280" fill="none" stroke="#555" stroke-width="14" stroke-linecap="round"/>
+  <!-- Querwindbahn -->
+  <rect x="175" y="200" width="190" height="26" rx="4" fill="#444" transform="rotate(30 270 213)"/>
+  <line x1="185" y1="213" x2="355" y2="213" stroke="#d9a400" stroke-width="2" stroke-dasharray="12 8" transform="rotate(30 270 213)"/>
   <!-- Grünflächen -->
-  <circle cx="380" cy="160" r="30" fill="#2d5a2e" opacity=".5"/>
-  <circle cx="130" cy="380" r="25" fill="#2d5a2e" opacity=".5"/>
-  <circle cx="400" cy="360" r="35" fill="#2d5a2e" opacity=".4"/>
-  <!-- Kompassnadel oben rechts -->
-  <g transform="translate(430 80)">
-    <polygon points="0,-28 6,0 0,-8 -6,0" fill="#e03030"/>
-    <polygon points="0,28 6,0 0,8 -6,0" fill="#ccc"/>
-    <circle cx="0" cy="0" r="4" fill="#d9a400"/>
+  <circle cx="380" cy="140" r="28" fill="#2d5a2e" opacity=".5"/>
+  <circle cx="120" cy="360" r="22" fill="#2d5a2e" opacity=".5"/>
+  <circle cx="400" cy="330" r="32" fill="#2d5a2e" opacity=".4"/>
+  <!-- Kompassnadel -->
+  <g transform="translate(430 70)">
+    <polygon points="0,-24 5,0 0,-7 -5,0" fill="#e03030"/>
+    <polygon points="0,24 5,0 0,7 -5,0" fill="#ccc"/>
+    <circle cx="0" cy="0" r="3.5" fill="#d9a400"/>
   </g>
-  <!-- Text -->
-  <text x="256" y="478" text-anchor="middle" font-family="sans-serif" font-weight="700" font-size="56" fill="#d9a400" letter-spacing="6">LÄRZ</text>
+  <!-- Müritz Airpark -->
+  <text x="256" y="440" text-anchor="middle" font-family="sans-serif" font-weight="700" font-size="50" fill="#d9a400" letter-spacing="3">M&#xDC;RITZ</text>
+  <text x="256" y="490" text-anchor="middle" font-family="sans-serif" font-weight="400" font-size="36" fill="#9aa6a1" letter-spacing="8">AIRPARK</text>
 </svg>
