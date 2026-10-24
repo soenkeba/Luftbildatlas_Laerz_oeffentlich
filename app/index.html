@@ -75,11 +75,36 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline
 table.q{width:100%;border-collapse:collapse;font-size:12px;font-variant-numeric:tabular-nums}
 table.q td,table.q th{padding:3px 4px;border-bottom:1px solid var(--line);text-align:right}
 table.q td:first-child,table.q th:first-child{text-align:left}
+/* GPS dot pulse */
+@keyframes gps-pulse{0%{r:12;opacity:.6}100%{r:30;opacity:0}}
+/* Mobile */
 @media(max-width:760px){
-  .app{grid-template-columns:1fr;grid-template-rows:55% 45%}
-  .panel{border-left:none;border-top:1px solid var(--line)}
+  .app{grid-template-columns:1fr;grid-template-rows:1fr auto}
+  .panel{border-left:none;border-top:1px solid var(--line);max-height:55vh;transition:max-height .3s ease}
+  .panel.collapsed{max-height:48px;overflow:hidden}
+  .panel.collapsed .pbody{display:none}
+  .phead{cursor:pointer;-webkit-tap-highlight-color:transparent;padding:10px 16px 8px;position:relative}
+  .phead::after{content:'';position:absolute;top:4px;left:50%;transform:translateX(-50%);width:32px;height:4px;background:var(--line);border-radius:2px}
+  .phead h1{font-size:18px}
+  .phead p{display:none}
+  .tools{gap:3px;left:6px;top:6px}
+  .tools button{height:40px;min-width:40px;font-size:13px;padding:0 8px;border-radius:8px}
+  .zoom{right:6px;top:6px}
+  .zoom button{width:44px;height:44px;font-size:22px;border-radius:8px}
+  .hud{left:6px;bottom:6px;gap:4px}
+  .chip{font-size:10px;padding:4px 6px}
+  .chip small{font-size:9px}
+  .row{gap:4px;padding:4px 6px}
+  .row .nm{font-size:12px}
+  .row .sub{font-size:10px}
+  .reord{display:none}
+  .sec{padding:6px 12px}
+  .btns{gap:4px}
+  button.b{padding:8px 10px;font-size:12px;min-height:40px}
+  .adj,.ibtn{min-width:32px;min-height:32px;font-size:12px;display:inline-flex;align-items:center;justify-content:center}
+  #adjbox{margin:4px 12px 6px}
 }
-@media(prefers-reduced-motion:reduce){#toast{transition:none}}
+@media(prefers-reduced-motion:reduce){#toast{transition:none}.panel{transition:none}}
 </style>
 
 <div class="app">
@@ -89,6 +114,7 @@ table.q td:first-child,table.q th:first-child{text-align:left}
       <button id="t_measure" title="Entfernungen messen (M)">Messen</button>
       <button id="t_mark" title="Punkte setzen (P)">Markieren</button>
       <button id="t_clear" title="Messungen und Markierungen entfernen">Entfernen</button>
+      <button id="t_gps" title="GPS-Standort anzeigen">Standort</button>
     </div>
     <div class="zoom">
       <button id="zin" aria-label="Hineinzoomen">+</button>
@@ -491,6 +517,12 @@ function renderAnnotations(){
     h+=`<circle cx="${mx}" cy="${my}" r="${r*1.5}" fill="#ff3366" stroke="#fff" stroke-width="${sw}"/>`;
     h+=`<text x="${mx+r*2.5}" y="${my+fs*.35}" font-size="${fs}" fill="#ff3366" stroke="#000" stroke-width="${sw}" paint-order="stroke" font-family="JetBrains Mono,monospace">${e.toFixed(0)} / ${n.toFixed(0)}</text>`;
   });
+  // GPS-Position
+  if(gpsPos){
+    const gx=gpsPos.x,gy=gpsPos.y,gr=Math.max(4,8/z),accR=(gpsAcc||10)/1; // 1 world unit = 1 m
+    h+=`<circle cx="${gx}" cy="${gy}" r="${accR}" fill="rgba(66,133,244,0.15)" stroke="rgba(66,133,244,0.4)" stroke-width="${sw}"/>`;
+    h+=`<circle cx="${gx}" cy="${gy}" r="${gr}" fill="#4285f4" stroke="#fff" stroke-width="${sw*1.5}"/>`;
+  }
   annoSvg.innerHTML=h;
 }
 
@@ -570,6 +602,49 @@ document.getElementById('export').onclick=()=>{const o={};LAYERS.filter(L=>L.adj
   const t=JSON.stringify(o,null,1)||'{}';const box=document.getElementById('exportbox');box.value=Object.keys(o).length?t:'Keine Anpassungen.';box.hidden=false;
   navigator.clipboard?.writeText(box.value).then(()=>toast('In die Zwischenablage kopiert'),()=>{box.select();toast('Text markiert, bitte kopieren')})};
 document.getElementById('resetall').onclick=()=>{LAYERS.forEach(L=>{L.a={dx:0,dy:0,rot:0,sc:100};applyLayer(L);persist(L)});drawFoot();syncAdj();toast('Alle Anpassungen zurückgesetzt')};
+
+// ── GPS-Standort ──────────────────────────────────────────────────────
+let gpsWatch=null,gpsPos=null,gpsAcc=null;
+function toggleGPS(){
+  const btn=document.getElementById('t_gps');
+  if(gpsWatch!==null){
+    navigator.geolocation.clearWatch(gpsWatch);gpsWatch=null;gpsPos=null;gpsAcc=null;
+    btn.classList.remove('on');renderAnnotations();toast('GPS deaktiviert');return;
+  }
+  if(!navigator.geolocation){toast('GPS nicht verfügbar');return}
+  btn.classList.add('on');toast('Suche GPS-Signal...');
+  gpsWatch=navigator.geolocation.watchPosition(
+    pos=>{
+      gpsPos=llToWorld(pos.coords.latitude,pos.coords.longitude);
+      gpsAcc=pos.coords.accuracy||10;
+      renderAnnotations();
+      // Beim ersten Fix auf Position zentrieren
+      if(!gpsPos._centered){
+        gpsPos._centered=true;
+        tx=view.clientWidth/2-gpsPos.x*z;ty=view.clientHeight/2-gpsPos.y*z;render();
+        toast(`GPS: ${gpsAcc.toFixed(0)} m Genauigkeit`);
+      }
+    },
+    err=>{toast('GPS-Fehler: '+(err.code===1?'Zugriff verweigert':err.code===2?'Nicht verfügbar':'Timeout'));
+      btn.classList.remove('on');gpsWatch=null},
+    {enableHighAccuracy:true,maximumAge:5000,timeout:15000}
+  );
+}
+document.getElementById('t_gps').onclick=()=>{
+  if(gpsWatch!==null&&gpsPos){
+    // Zweiter Klick: auf Position zentrieren
+    tx=view.clientWidth/2-gpsPos.x*z;ty=view.clientHeight/2-gpsPos.y*z;render();
+  } else toggleGPS();
+};
+
+// ── Mobile: Panel toggle ──────────────────────────────────────────────
+const panel=document.querySelector('.panel');
+const isMobile=()=>window.innerWidth<=760;
+if(isMobile())panel.classList.add('collapsed');
+document.querySelector('.phead').addEventListener('click',e=>{
+  if(!isMobile())return;
+  panel.classList.toggle('collapsed');
+});
 
 // ── Toast & Start ─────────────────────────────────────────────────────
 let tt;function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('on');clearTimeout(tt);tt=setTimeout(()=>t.classList.remove('on'),2000)}
