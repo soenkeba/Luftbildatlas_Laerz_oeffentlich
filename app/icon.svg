@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- Hintergrund -->
+  <rect width="512" height="512" rx="96" fill="#1a2520"/>
+  <!-- Startbahn -->
+  <rect x="120" y="100" width="40" height="340" rx="4" fill="#555" transform="rotate(-15 256 256)"/>
+  <!-- Mittellinie Bahn -->
+  <line x1="140" y1="130" x2="140" y2="410" stroke="#d9a400" stroke-width="3" stroke-dasharray="16 10" transform="rotate(-15 256 256)"/>
+  <!-- Rollweg -->
+  <path d="M180 300 Q220 280 260 310 Q300 340 340 300" fill="none" stroke="#555" stroke-width="14" stroke-linecap="round"/>
+  <!-- Querwindbahn (kürzer) -->
+  <rect x="180" y="220" width="200" height="28" rx="4" fill="#444" transform="rotate(30 280 234)"/>
+  <line x1="190" y1="234" x2="370" y2="234" stroke="#d9a400" stroke-width="2" stroke-dasharray="12 8" transform="rotate(30 280 234)"/>
+  <!-- Grünflächen -->
+  <circle cx="380" cy="160" r="30" fill="#2d5a2e" opacity=".5"/>
+  <circle cx="130" cy="380" r="25" fill="#2d5a2e" opacity=".5"/>
+  <circle cx="400" cy="360" r="35" fill="#2d5a2e" opacity=".4"/>
+  <!-- Kompassnadel oben rechts -->
+  <g transform="translate(430 80)">
+    <polygon points="0,-28 6,0 0,-8 -6,0" fill="#e03030"/>
+    <polygon points="0,28 6,0 0,8 -6,0" fill="#ccc"/>
+    <circle cx="0" cy="0" r="4" fill="#d9a400"/>
+  </g>
+  <!-- Text -->
+  <text x="256" y="478" text-anchor="middle" font-family="sans-serif" font-weight="700" font-size="56" fill="#d9a400" letter-spacing="6">LÄRZ</text>
+</svg>
