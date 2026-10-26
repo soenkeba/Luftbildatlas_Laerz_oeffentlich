@@ -409,7 +409,9 @@ function makeLayerEl(L){
   if(L.kind==='full'){const i=new Image();i.src=L.src;i.alt=L.name;d.appendChild(i);L._img=i}
   if(L.kind==='frame'){const f=L.f;const i=new Image();i.src=L.src;i.alt=L.name;
     i.style.width=f.w+'px';i.style.height=f.h+'px';i.style.transform=frameMat(f.H);
-    const c=f.clip;i.style.clipPath=`inset(${c[1]}px ${f.w-c[2]}px ${f.h-c[3]}px ${c[0]}px)`;d.appendChild(i);L._img=i}
+    const c=f.clip;i.style.clipPath=f.poly?`polygon(${f.poly.map(p=>p[0]+'px '+p[1]+'px').join(',')})`
+      :`inset(${c[1]}px ${f.w-c[2]}px ${f.h-c[3]}px ${c[0]}px)`;d.appendChild(i);L._img=i}
+  if(L.blend)d.style.mixBlendMode=L.blend;
   if(L.kind==='foot'){
     const s=document.createElementNS('http://www.w3.org/2000/svg','svg');
     s.setAttribute('viewBox','0 0 2400 2400');s.setAttribute('width','2400');s.setAttribute('height','2400');
@@ -720,7 +722,9 @@ function exportImage(fmt){
     if(L.kind==='frame'&&L._img&&L._img.complete){
       const f=L.f,H=f.H,cl=f.clip;
       ctx.save();
+      if(L.blend)ctx.globalCompositeOperation=L.blend;
       if(L.adj){const a=L.a,[cx,cy]=centerOf(L);ctx.translate(cx+a.dx,cy+a.dy);ctx.rotate(a.rot*Math.PI/180);ctx.scale(a.sc/100,a.sc/100);ctx.translate(-cx,-cy)}
+      if(f.poly){ctx.beginPath();f.poly.forEach(p=>{const[x,y]=applyH(H,p[0],p[1]);ctx.lineTo(x,y)});ctx.closePath();ctx.clip()}
       drawFrameProjective(ctx,L._img,H,cl);ctx.restore();
     }
   }
@@ -912,7 +916,7 @@ async function privUnlock(key){
     const res=await fetch(PRIV+e.datei);if(!res.ok)throw new Error(e.datei+': HTTP '+res.status);
     const blob=new Blob([await privDecrypt(key,await res.arrayBuffer())],{type:e.mime});
     const L={id:e.id,name:e.name,sub:e.sub,desc:e.desc,kind:'frame',src:URL.createObjectURL(blob),
-      f:{w:e.w,h:e.h,H:e.H,clip:e.clip},on:false,op:e.op,adj:true,sw:e.sw,privat:true};
+      f:{w:e.w,h:e.h,H:e.H,clip:e.clip,poly:e.maske},blend:e.blend,on:false,op:e.op,adj:true,sw:e.sw,privat:true};
     restoreState(L);
     LAYERS.splice(alkis<0?LAYERS.length:alkis,0,L);  // unter ALKIS einordnen
     makeLayerEl(L);makeRow(L);applyLayer(L);

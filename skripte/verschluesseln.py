@@ -21,6 +21,12 @@ Georeferenz je Ebene ("georef"):
   {"ecken": [[E,N],[E,N],[E,N],[E,N]]}   Bildecken oben links, oben rechts, unten rechts, unten links
   {"H": [[...],[...],[...]]}             Homographie Bildpixel → Karten-Meter (wie die 1945er Frames)
 Koordinaten in ETRS89 / UTM 33N (EPSG:25833); EPSG:5650 (Ostwert mit „33“ davor) wird erkannt.
+
+Weitere Felder je Ebene (alle optional, Pixel im Originalbild):
+  "clip":  [x0, y0, x1, y1]          Bild auf dieses Rechteck zuschneiden
+  "maske": [[x, y], ...]             nur dieses Polygon zeigen (z. B. ohne Legende/Übersichtskarten)
+  "blend": "multiply"                Weiß wird durchsichtig – für Strichkarten auf weißem Grund
+PDFs vorher als PNG rendern (z. B. PyMuPDF, 250 dpi) und das PNG eintragen.
 """
 import base64, getpass, hashlib, hmac, io, json, os, secrets, sys
 
@@ -144,16 +150,31 @@ def main():
             H = np.array(g["H"], float)
         else:
             fehler(f"{e['id']}: unbekannte Georeferenz {g!r}")
-        clip = e.get("clip", [0, 0, w, h])
+        maske = np.array(e["maske"], float) if "maske" in e else None
+        clip = e.get("clip")
+        if clip is None and maske is not None:
+            clip = [*maske.min(0), *maske.max(0)]
 
-        # Verkleinern, Homographie und Clip mitskalieren
+        # Auf Clip-Rechteck zuschneiden, Homographie und Maske verschieben
+        if clip is not None:
+            x0, y0, x1, y1 = [int(round(c)) for c in clip]
+            img = img.crop((x0, y0, x1, y1))
+            H = H @ np.array([[1, 0, x0], [0, 1, y0], [0, 0, 1.0]])
+            if maske is not None:
+                maske -= (x0, y0)
+            w, h = img.size
+        clip = [0, 0, w, h]
+
+        # Verkleinern, Homographie, Clip und Maske mitskalieren
         s = max(w, h) / e.get("max_px", 4000)
         if s > 1:
             w2, h2 = round(w / s), round(h / s)
             img = img.resize((w2, h2), Image.LANCZOS)
             H = H @ np.diag([w / w2, h / h2, 1])
-            clip = [clip[0] * w2 / w, clip[1] * h2 / h, clip[2] * w2 / w, clip[3] * h2 / h]
+            if maske is not None:
+                maske *= (w2 / w, h2 / h)
             w, h = w2, h2
+            clip = [0, 0, w, h]
         H = H / H[2, 2]
 
         daten, mime = bild_kodieren(img)
@@ -175,6 +196,8 @@ def main():
             "id": e["id"], "name": e["name"], "sub": e.get("sub", "Airpark intern"),
             "desc": e.get("desc", ""), "datei": datei, "mime": mime, "w": w, "h": h,
             "H": H.tolist(), "clip": [round(c, 1) for c in clip],
+            "maske": None if maske is None else np.round(maske, 1).tolist(),
+            "blend": e.get("blend"),
             "op": e.get("deckkraft", 0.85), "sw": e.get("farbe", "#c0392b"),
         })
 
