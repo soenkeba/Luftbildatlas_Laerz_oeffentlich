@@ -3,7 +3,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <!-- WhatsApp / Social Preview -->
 <meta property="og:title" content="Luftbildatlas Lärz">
-<meta property="og:description" content="Historische und aktuelle Karten des ehemaligen Fliegerhorsts Lärz (Müritz Airpark) im Vergleich – Luftaufklärung 1945, Luftbilder 1953 und 1991, Messtischblatt, Geländemodell und mehr.">
+<meta property="og:description" content="Historische und aktuelle Karten des ehemaligen Fliegerhorsts Lärz (Müritz Airpark) im Vergleich – Luftaufklärung 1944/45, Luftbilder 1953 und 1991, Messtischblatt, Geländemodell und mehr.">
 <meta property="og:type" content="website">
 <meta property="og:image" content="https://soenkeba.github.io/Luftbildatlas_Laerz_oeffentlich/app/icon-512.png">
 <meta property="og:image:width" content="512">
@@ -155,7 +155,7 @@ table.q td:first-child,table.q th:first-child{text-align:left}
     <div class="phead">
       <h1>Luftbildatlas Lärz <button class="mob-reset" id="mob_reset" title="Heute + Grundst&uuml;cke">&loz;</button></h1>
       <div class="pull-hint">Antippen f&uuml;r Ebenen und Einstellungen &darr;</div>
-      <p>Ehemaliger Fliegerhorst Lärz (heute Müritz Airpark) &ndash; historische und aktuelle Karten im Vergleich. Luftaufklärung vom 11.04.1945, Luftbilder 1953 und 1991, Messtischblatt, Geländemodell, basemap.de und Satellitenbilder. ETRS89 / UTM 33N.</p>
+      <p>Ehemaliger Fliegerhorst Lärz (heute Müritz Airpark) &ndash; historische und aktuelle Karten im Vergleich. Luftaufklärung vom 28.05.1944, 08.04.1945 und 11.04.1945, Luftbilder 1953 und 1991, Messtischblatt, Geländemodell, basemap.de und Satellitenbilder. ETRS89 / UTM 33N.</p>
     </div>
     <div class="pbody">
       <div class="sec"><h2>Ebenen</h2><div id="layers"></div></div>
@@ -188,6 +188,8 @@ table.q td:first-child,table.q th:first-child{text-align:left}
           <button class="b" data-preset="1945">1945 &uuml;ber heute</button>
           <button class="b" data-preset="1945alk">1945 + Grundst&uuml;cke</button>
           <button class="b" data-preset="1953">1945 gegen 1953</button>
+          <button class="b" data-preset="1944">Mai 1944 &uuml;ber heute</button>
+          <button class="b" data-preset="vornach">Vor / nach 10.04.1945</button>
           <button class="b" data-preset="1991">1991 (Wende)</button>
           <button class="b" data-preset="1991h">1991 &uuml;ber heute</button>
           <button class="b" data-preset="ddr">DDR-Karte + 1945</button>
@@ -252,6 +254,8 @@ table.q td:first-child,table.q th:first-child{text-align:left}
           <tr><td>3054</td><td>71 + Verkn.</td><td>1,8 m</td><td>0,195</td></tr>
           <tr><td>4071</td><td>29 + Verkn.</td><td>2,9 m</td><td>0,183</td></tr>
           <tr><td>4053</td><td>105 + 1280</td><td>2,5 m</td><td>0,194</td></tr>
+          <tr><td>28.05.44</td><td>36&ndash;154 je Bild</td><td>1,7&ndash;2,3 m</td><td>~1,8</td></tr>
+          <tr><td>08.04.45</td><td>53&ndash;178 je Bild</td><td>1,4&ndash;2,2 m</td><td>~1,7</td></tr>
         </table>
         <p class="note">Passpunkte automatisch per Bildkorrelation gegen das Luftbild 1953 (Bahnen, Rollwege, Kanal). Verknüpfungspunkte zwischen Bildern desselben Flugs. Projektiv entzerrt (RANSAC). Die heutige Startbahn wurde nach 1945 umgebaut und passt deshalb nicht 1:1.</p>
       </div>
@@ -275,7 +279,7 @@ table.q td:first-child,table.q th:first-child{text-align:left}
           Nach der Installation &ouml;ffnet sich der Atlas im Vollbild mit dem M&uuml;ritz-Airpark-Icon. GPS-Standort funktioniert auch in der App-Version.
         </div>
       </div>
-      <div class="sec note">Quellen: NCAP (US7/0094/C, Frames 3054, 4053, 4071; &copy; National Collection of Aerial Photography) &middot; DOP, DOP 1953, DOP 1991, ALKIS, TK25, DTK25, DGM &copy; GeoBasis-DE/M-V (CC BY 4.0) &middot; TopPlusOpen, Sentinel-2 &copy; BKG (dl-de/by-2-0) &middot; basemap.de &copy; BKG / OSM-Mitwirkende &middot; Google Satellite &copy; Google. Keine Kampfmittelauskunft &ndash; für Bauvorhaben gilt allein die Auskunft des MBD M-V (LPBK M-V).</div>
+      <div class="sec note">Quellen: NCAP (US7/0094/C, Frames 3054, 4053, 4071; &copy; National Collection of Aerial Photography) &middot; DOP, DOP 1953, DOP 1991, ALKIS, TK25, DTK25, DGM &copy; GeoBasis-DE/M-V (CC BY 4.0) &middot; Historische Luftbilder 28.05.1944 und 08.04.1945: LAiV M-V, &copy; GeoBasis-DE/MV 2026, <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a> (Quelle verändert: entzerrt und mosaikiert) &middot; TopPlusOpen, Sentinel-2 &copy; BKG (dl-de/by-2-0) &middot; basemap.de &copy; BKG / OSM-Mitwirkende &middot; Google Satellite &copy; Google. Keine Kampfmittelauskunft &ndash; für Bauvorhaben gilt allein die Auskunft des MBD M-V (LPBK M-V).</div>
       <div class="sec note" style="margin-top:8px;border-top:1px solid var(--line);padding-top:8px">Erstellt von soenke.bartling@gmail.com mit Claude, Cursor und Grok.</div>
     </div>
   </aside>
@@ -373,6 +377,10 @@ const LAYERS=[
    desc:'Historisches Orthophoto aus CIR-Infrarot-Befliegung 1990/91 (Falschfarben). 0,6 m/px (hier heruntergeladen mit 4000 px auf 2400 m). Zeigt den Flugplatz kurz nach der Wende, noch mit militärischer Infrastruktur. Amtlich georeferenziert. Quelle: GeoBasis-DE/M-V (CC BY 4.0).'},
   {id:'1953',name:'Luftbild 1953',sub:'DOP M-V, s/w',src:'dop_1953.jpg',kind:'full',on:false,op:1,adj:true,sw:'#9a9a92',
    desc:'Historisches Orthophoto aus Befliegung 1953, Schwarzweiß. 1,0 m/px. Referenzbild für die Georeferenzierung der 1945er Aufnahmen (Bahnen und Rollwege noch identisch). Amtlich georeferenziert. Quelle: GeoBasis-DE/M-V (CC BY 4.0).'},
+  {id:'lb440528',name:'Luftbild 28.05.1944',sub:'US 7GR 1619, LAiV M-V',src:'luftbild_1944-05-28.webp',kind:'full',on:false,op:1,adj:true,sw:'#8d6e63',
+   desc:'Amerikanische Luftaufklärung vom 28.05.1944 (US 7th Photo Group, Sortie 1619), knapp ein Jahr vor dem Angriff vom 10.04.1945. Schon damals viele Bombentrichter um Hallen und Kanal. Mosaik aus 9 Bildern (Flug 44_186, Bilder 2005-2009, 2063-2066), Vorschauauflösung ca. 1,8 m/px. Je Bild 36-154 Passpunkte gegen DOP 1953, projektiv entzerrt, Restfehler 1,7-2,3 m. Quelle: © GeoBasis-DE/MV 2026, CC BY 4.0 (Quelle verändert).'},
+  {id:'lb450408',name:'Luftbild 08.04.1945',sub:'RAF 106G/5234, LAiV M-V',src:'luftbild_1945-04-08.webp',kind:'full',on:false,op:1,adj:true,sw:'#a1887f',
+   desc:'Britische Luftaufklärung vom 08.04.1945 (RAF 106G/5234), zwei Tage vor dem Angriff der 8th Air Force am 10.04.1945. Mosaik aus 13 Bildern (Flüge 45_011 und 45_012), Vorschauauflösung ca. 1,7 m/px. Je Bild 53-178 Passpunkte gegen DOP 1953, projektiv entzerrt, Restfehler 1,4-2,2 m. Quelle: © GeoBasis-DE/MV 2026, CC BY 4.0 (Quelle verändert).'},
   {id:'3054',name:'1945 - Frame 3054',sub:'US7/0094/C',src:'f3054.jpg',kind:'frame',on:false,op:.85,adj:true,sw:'#d070d0',
    desc:'Luftaufklärung vom 11.04.1945 (einen Tag nach dem Angriff der 8th Air Force), Frame 3054. Georeferenziert per automatischer Bildkorrelation gegen DOP 1953 an 71 Passpunkten + Verknüpfungspunkte zu Frame 4071. Projektiv entzerrt (RANSAC). Restfehler 1,8 m, 0,195 m/px im Original. Quelle: NCAP.'},
   {id:'4071',name:'1945 - Frame 4071',sub:'US7/0094/C',src:'f4071.jpg',kind:'frame',on:false,op:.85,adj:true,sw:'#e0b000',
@@ -658,6 +666,8 @@ const PRE={
  '1945':    {...f45,heute:[1,1],foot:[1]},
  '1945alk': {...f45,heute:[1,1],alkis:[1,.8],foot:[1]},
  '1953':    {...allOff,'1953':[1,1],'3054':[1,.6],'4071':[1,.6],'4053':[1,.6]},
+ '1944':    {...allOff,heute:[1,1],lb440528:[1,.85]},
+ 'vornach': {...f45,lb450408:[1,1],foot:[1]},
  // Historisch
  '1991':    {...allOff,'1991':[1,1],'3054':[1,.5],'4071':[1,.5],'4053':[1,.5]},
  '1991h':   {...allOff,heute:[1,1],'1991':[1,.6]},

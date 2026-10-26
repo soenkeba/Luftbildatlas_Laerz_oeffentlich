@@ -20,6 +20,7 @@ Deutsch für Texte, UI und Doku.
 4. `bundle.py` – gemeinsamer Ausgleich 4071/3054 aus Passpunkten + Verknüpfungspunkten → `Hfinal.json`.
 5. `ref53.py` – 4053 aus Verknüpfungspunkten zu 4071 + eigenen Passpunkten gegen 1953 verfeinern.
 6. `mosaic45.py` – Mosaik der drei Frames.
+7. `laiv_reg.py` + `laiv_mosaik.py` – LAiV-Vorschaubilder 28.05.1944 und 08.04.1945 (`rohdaten/laiv_vorschau/`, mit `katalog.tsv`) registrieren und je Flugtag zu `app/luftbild_<Datum>.webp` (1 m/px, Alpha) mosaikieren. Feste Pfade, aus dem Projektordner starten.
 Ergebnis-Homographien: `georeferenz_parameter/Homographien_Frame_px_auf_Karte_m.json` (Frame-Pixel des Original-Scans → Karten-Meter).
 Restfehler: 3054 1,8 m · 4071 2,9 m · 4053 2,5 m; Maßstab 0,18–0,195 m/px.
 
@@ -32,6 +33,6 @@ Die Skripte sind Arbeitsstand (Pfade relativ zum Arbeitsverzeichnis, Dateinamen 
 - Online-Version existiert als claude.ai-Artifact „Luftbildatlas Lärz" (enthält dort private Ebenen – nicht diese Fassung).
 
 ## Offene Ideen
-- Weitere Frames (3055, 3053, 4054) hochauflösend beschaffen und einbinden.
+- Weitere Frames (3055, 3053, 4054) hochauflösend beschaffen und einbinden. Das LAiV M-V hat sie (Flüge 45_149/45_150), ebenso 1944/45-Flüge über Lärz: 10.05.44, 28.05.44, 04.08.44, 13.09.44, 24.12.44, 08.04.45. Vollscans 25 €/Bild (Mindestens 60 €/Auftrag); Vorschau-API: `laiv.geodaten-mv.de/afgvk/_apps/dladownload/_ajax/overview.php` und `preview.php?type=lb&id=<bild_id>`.
 - Trichterkartierung des gesamten Platzes, Bombenreihen-Analyse (Anflugrichtung aus Mission Reports der 458th/466th/467th BG).
 - GeoTIFF statt JPG+World-File erzeugen (gdal).
