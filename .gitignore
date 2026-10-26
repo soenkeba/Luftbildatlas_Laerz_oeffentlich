@@ -2,3 +2,9 @@ __pycache__/
 *.pyc
 .DS_Store
 _arbeit/
+
+# Vertrauliche Ebenen: Originale nur lokal; ins Repo kommen nur die verschlüsselten Dateien
+vertraulich/
+app/airparkinternal/*
+!app/airparkinternal/index.json
+!app/airparkinternal/*.bin

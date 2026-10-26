@@ -28,6 +28,7 @@ Die Skripte sind Arbeitsstand (Pfade relativ zum Arbeitsverzeichnis, Dateinamen 
 ## App
 - Eine HTML-Datei, Daten (Homographien, Bildgrößen, Clip-Rechtecke) inline in `const D`. Bilder relativ (`f4071.jpg` usw. mit halber Auflösung).
 - Frames werden per CSS `matrix3d` aus der Homographie gezeichnet.
+- „Airpark intern": verschlüsselte Zusatzebenen in `app/airparkinternal/` (nur `index.json` + `*.bin` im Repo). Originale + `ebenen.json` lokal in `vertraulich/` (ignoriert), Verschlüsselung mit `skripte/verschluesseln.py`. Der Passwort-Bereich erscheint nur über `app/?airparkinternal` oder mit gemerktem Schlüssel; in README/UI der normalen Version nicht erwähnen.
 - Online-Version existiert als claude.ai-Artifact „Luftbildatlas Lärz" (enthält dort private Ebenen – nicht diese Fassung).
 
 ## Offene Ideen

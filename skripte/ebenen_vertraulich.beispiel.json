@@ -1,0 +1,23 @@
+{
+ "_hinweis": "Nach vertraulich/ebenen.json kopieren. Bilddateien liegen ebenfalls in vertraulich/. Dann: python3 skripte/verschluesseln.py",
+ "ebenen": [
+  {
+   "id": "p_luftbild_a",
+   "name": "Luftbild A",
+   "sub": "Quelle, Jahr",
+   "desc": "Beschreibung, Herkunft, Genauigkeit.",
+   "datei": "luftbild_a.tif",
+   "georef": "auto",
+   "deckkraft": 0.85,
+   "farbe": "#c0392b"
+  },
+  {
+   "id": "p_karte_b",
+   "name": "Karte B",
+   "datei": "karte_b.jpg",
+   "georef": {"ecken": [[348700, 5909000], [350900, 5909000], [350900, 5906800], [348700, 5906800]]},
+   "clip": [40, 40, 5960, 5960],
+   "max_px": 4000
+  }
+ ]
+}

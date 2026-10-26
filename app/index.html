@@ -91,6 +91,7 @@ button.b{font-family:var(--f-body);font-size:13px;padding:6px 10px;border-radius
 button.b.pri{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);font-weight:600}
 button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .note{color:var(--muted);font-size:12px;line-height:1.45}
+#privpw{flex:1;min-width:140px;font-family:var(--f-body);font-size:13px;padding:6px 8px;border-radius:6px;border:1px solid var(--line);background:var(--bg);color:var(--ink)}
 table.q{width:100%;border-collapse:collapse;font-size:12px;font-variant-numeric:tabular-nums}
 table.q td,table.q th{padding:3px 4px;border-bottom:1px solid var(--line);text-align:right}
 table.q td:first-child,table.q th:first-child{text-align:left}
@@ -158,6 +159,15 @@ table.q td:first-child,table.q th:first-child{text-align:left}
     </div>
     <div class="pbody">
       <div class="sec"><h2>Ebenen</h2><div id="layers"></div></div>
+      <div class="sec" id="privsec" hidden>
+        <h2>Airpark intern</h2>
+        <form id="privform" class="btns">
+          <input type="password" id="privpw" placeholder="Passwort" autocomplete="current-password" aria-label="Passwort">
+          <button class="b pri">Entsperren</button>
+          <label class="note" style="display:flex;gap:6px;align-items:center;width:100%"><input type="checkbox" id="privmerk" checked> Auf diesem Ger&auml;t merken</label>
+        </form>
+        <div id="privok" class="btns" style="align-items:center" hidden><span class="note" id="privinfo"></span><button class="b" id="privlock">Sperren</button></div>
+      </div>
       <div id="adjbox" hidden>
         <div class="t" id="adjtitle">Ebene anpassen</div>
         <div class="ctl"><span>Ost/West (m)</span><input type="range" id="r_dx" min="-150" max="150" step="0.5"><input type="number" id="n_dx" step="0.5"></div>
@@ -380,22 +390,24 @@ const LAYERS=[
   {id:'foot',name:'Bildränder 1945',sub:'Umrisse der drei Aufnahmen',kind:'foot',on:false,op:1,adj:false,sw:'#ffffff',
    desc:'Zeigt die Umrisse (Clip-Bereiche) der drei Luftaufklärungsbilder von 1945.'}
 ];
-LAYERS.forEach(L=>{const s=store[L.id];if(s){L.on=s.on??L.on;L.op=s.op??L.op;L.a=s.a}L.a=L.a||{dx:0,dy:0,rot:0,sc:100}});
-try{const ord=store._order;if(Array.isArray(ord)){
-  LAYERS.sort((a,b)=>{const ai=ord.indexOf(a.id),bi=ord.indexOf(b.id);return(ai===-1?999:ai)-(bi===-1?999:bi)});
-}}catch(e){}
+function restoreState(L){const s=store[L.id];if(s){L.on=s.on??L.on;L.op=s.op??L.op;L.a=s.a}L.a=L.a||{dx:0,dy:0,rot:0,sc:100};
+  if(L.kind==='frame'&&!L.f)L.f=D.frames[L.id]}
+function sortByStoredOrder(){const ord=store._order;if(!Array.isArray(ord))return;
+  LAYERS.sort((a,b)=>{const ai=ord.indexOf(a.id),bi=ord.indexOf(b.id);return(ai===-1?999:ai)-(bi===-1?999:bi)})}
+LAYERS.forEach(restoreState);
+try{sortByStoredOrder()}catch(e){}
 
 // ── Layer-DOM aufbauen ────────────────────────────────────────────────
 function centerOf(L){
-  if(L.kind==='frame'){const f=D.frames[L.id];return applyH(f.H,f.w/2,f.h/2)}
+  if(L.kind==='frame'){const f=L.f;return applyH(f.H,f.w/2,f.h/2)}
   return[1200,1200];
 }
 let svgFoot,annoSvg;
-LAYERS.forEach(L=>{
+function makeLayerEl(L){
   const d=document.createElement('div');d.className='lyr'+(L.kind==='full'?' full':'');L.el=d;
   if(L.kind==='google'){L._loaded=false}
   if(L.kind==='full'){const i=new Image();i.src=L.src;i.alt=L.name;d.appendChild(i);L._img=i}
-  if(L.kind==='frame'){const f=D.frames[L.id];const i=new Image();i.src=L.src;i.alt=L.name;
+  if(L.kind==='frame'){const f=L.f;const i=new Image();i.src=L.src;i.alt=L.name;
     i.style.width=f.w+'px';i.style.height=f.h+'px';i.style.transform=frameMat(f.H);
     const c=f.clip;i.style.clipPath=`inset(${c[1]}px ${f.w-c[2]}px ${f.h-c[3]}px ${c[0]}px)`;d.appendChild(i);L._img=i}
   if(L.kind==='foot'){
@@ -403,7 +415,8 @@ LAYERS.forEach(L=>{
     s.setAttribute('viewBox','0 0 2400 2400');s.setAttribute('width','2400');s.setAttribute('height','2400');
     s.style.cssText='position:absolute;overflow:visible';svgFoot=s;d.appendChild(s)}
   world.appendChild(d);
-});
+}
+LAYERS.forEach(makeLayerEl);
 // Annotations-SVG (ganz oben)
 annoSvg=document.createElementNS('http://www.w3.org/2000/svg','svg');
 annoSvg.setAttribute('viewBox','0 0 2400 2400');annoSvg.setAttribute('width','2400');annoSvg.setAttribute('height','2400');
@@ -445,7 +458,7 @@ function moveLayer(L,dir){
 }
 function persistOrder(){store._order=LAYERS.map(L=>L.id);save()}
 
-LAYERS.slice().reverse().forEach(L=>{
+function makeRow(L){
   const r=document.createElement('div');r.className='row';L.row=r;
   const descId='desc_'+L.id;
   r.innerHTML=`<input type="checkbox" id="cb_${L.id}" ${L.on?'checked':''}>
@@ -464,7 +477,8 @@ LAYERS.slice().reverse().forEach(L=>{
   r.querySelector('[data-info]').onclick=()=>{const d=document.getElementById(descId);d.hidden=!d.hidden};
   r.querySelector('[data-up]').onclick=()=>moveLayer(L,1);  // höherer Index = weiter oben gerendert = vorne
   r.querySelector('[data-dn]').onclick=()=>moveLayer(L,-1);
-});
+}
+LAYERS.slice().reverse().forEach(makeRow);
 LAYERS.forEach(applyLayer);drawFoot();
 
 // ── Ebene anpassen ────────────────────────────────────────────────────
@@ -550,7 +564,7 @@ view.addEventListener('dblclick',e=>{if(tool==='measure'&&curMeasure.length>=2){
 window.addEventListener('resize',render);
 
 // ── Tastatur ──────────────────────────────────────────────────────────
-const frames45=()=>LAYERS.filter(L=>L.kind==='frame');let hHeld=false;
+const frames45=()=>LAYERS.filter(L=>L.kind==='frame'&&!L.privat);let hHeld=false;
 window.addEventListener('keydown',e=>{
   if(e.target.matches('input,textarea'))return;
   if(e.key==='h'||e.key==='H'){if(!hHeld){hHeld=true;frames45().forEach(L=>L.el.hidden=true)}}
@@ -654,10 +668,12 @@ const PRE={
  // Alles 1945
  'alle1945':{...f45,heute:[1,1],'1953':[1,.3],alkis:[1,.5],foot:[1],dgm:[1,.3]}
 };
-document.querySelectorAll('[data-preset]').forEach(b=>b.onclick=()=>{const p=PRE[b.dataset.preset];
-  LAYERS.forEach(L=>{const v=p[L.id];if(!v)return;L.on=!!v[0];if(v[1]!=null)L.op=v[1];applyLayer(L);persist(L);
+// Interne Ebenen kommen in keinem Preset vor und werden ausgeschaltet
+function applyPreset(p){
+  LAYERS.forEach(L=>{const v=p[L.id]||(L.privat?[0]:null);if(!v)return;L.on=!!v[0];if(v[1]!=null)L.op=v[1];applyLayer(L);persist(L);
     L.row.querySelector('input[type=checkbox]').checked=L.on;L.row.querySelector('input[type=range]').value=L.op});
-  toast(b.textContent)});
+}
+document.querySelectorAll('[data-preset]').forEach(b=>b.onclick=()=>{applyPreset(PRE[b.dataset.preset]);toast(b.textContent)});
 
 // ── Export ─────────────────────────────────────────────────────────────
 // Canvas kennt nur affine Transforms. Die 1945er Homographien sind projektiv,
@@ -702,7 +718,7 @@ function exportImage(fmt){
       ctx.drawImage(L._img,0,0,2400,2400);ctx.restore();
     }
     if(L.kind==='frame'&&L._img&&L._img.complete){
-      const f=D.frames[L.id],H=f.H,cl=f.clip;
+      const f=L.f,H=f.H,cl=f.clip;
       ctx.save();
       if(L.adj){const a=L.a,[cx,cy]=centerOf(L);ctx.translate(cx+a.dx,cy+a.dy);ctx.rotate(a.rot*Math.PI/180);ctx.scale(a.sc/100,a.sc/100);ctx.translate(-cx,-cy)}
       drawFrameProjective(ctx,L._img,H,cl);ctx.restore();
@@ -867,14 +883,81 @@ document.querySelector('.phead').addEventListener('click',e=>{
 });
 document.getElementById('mob_reset').onclick=e=>{
   e.stopPropagation(); // Panel nicht auf-/zuklappen
-  // Preset "heute" anwenden
-  const p=PRE['heute'];
-  LAYERS.forEach(L=>{const v=p[L.id];if(!v)return;L.on=!!v[0];if(v[1]!=null)L.op=v[1];applyLayer(L);persist(L);
-    L.row.querySelector('input[type=checkbox]').checked=L.on;L.row.querySelector('input[type=range]').value=L.op});
+  applyPreset(PRE['heute']);
   home(); // auf Flugplatz zentrieren
   panel.classList.add('collapsed');
   toast('Heute + Grundstücke');
 };
+
+// ── Airpark intern (verschlüsselte Ebenen) ──────────────────────────────────────────────────────────────────
+// Verschlüsselt mit skripte/verschluesseln.py (PBKDF2 → AES-256-GCM, je Datei 12 Byte IV + Chiffrat).
+// Der Bereich erscheint nur mit ?airparkinternal in der Adresse oder wenn auf dem Gerät ein Schlüssel gemerkt ist.
+const PRIV='airparkinternal/',PKEY='laerz-atlas-airparkinternal';
+const privSec=document.getElementById('privsec');
+let privIdx=null;
+const b64d=s=>Uint8Array.from(atob(s),c=>c.charCodeAt(0));
+const b64e=u=>btoa(String.fromCharCode(...new Uint8Array(u)));
+function privDecrypt(key,buf){const u=new Uint8Array(buf);return crypto.subtle.decrypt({name:'AES-GCM',iv:u.slice(0,12)},key,u.slice(12))}
+async function privDeriveKey(pw){
+  const k=privIdx.kdf;
+  const base=await crypto.subtle.importKey('raw',new TextEncoder().encode(pw),'PBKDF2',false,['deriveKey']);
+  return crypto.subtle.deriveKey({name:'PBKDF2',hash:k.hash,salt:b64d(k.salt),iterations:k.iter},base,{name:'AES-GCM',length:256},true,['decrypt']);
+}
+async function privUnlock(key){
+  // Wirft bei falschem Schlüssel (GCM-Authentifizierung schlägt fehl)
+  const man=JSON.parse(new TextDecoder().decode(await privDecrypt(key,b64d(privIdx.manifest))));
+  const alkis=LAYERS.findIndex(L=>L.id==='alkis');
+  for(const e of man.ebenen){
+    if(LAYERS.some(L=>L.id===e.id))continue;
+    const res=await fetch(PRIV+e.datei);if(!res.ok)throw new Error(e.datei+': HTTP '+res.status);
+    const blob=new Blob([await privDecrypt(key,await res.arrayBuffer())],{type:e.mime});
+    const L={id:e.id,name:e.name,sub:e.sub,desc:e.desc,kind:'frame',src:URL.createObjectURL(blob),
+      f:{w:e.w,h:e.h,H:e.H,clip:e.clip},on:false,op:e.op,adj:true,sw:e.sw,privat:true};
+    restoreState(L);
+    LAYERS.splice(alkis<0?LAYERS.length:alkis,0,L);  // unter ALKIS einordnen
+    makeLayerEl(L);makeRow(L);applyLayer(L);
+  }
+  try{sortByStoredOrder()}catch(e){}
+  rebuildLayerOrder();
+  return man.ebenen.length;
+}
+function privShowUnlocked(n){
+  document.getElementById('privform').hidden=true;document.getElementById('privok').hidden=false;
+  document.getElementById('privinfo').textContent=n===1?'1 Ebene entsperrt (in der Ebenenliste oben)':n+' Ebenen entsperrt (in der Ebenenliste oben)';
+}
+async function privInit(){
+  let saved=null;try{saved=JSON.parse(localStorage.getItem(PKEY)||'null')}catch(e){}
+  if(!saved&&!new URLSearchParams(location.search).has('airparkinternal'))return;
+  if(!window.crypto?.subtle)return;
+  try{const r=await fetch(PRIV+'index.json',{cache:'no-cache'});if(!r.ok)return;privIdx=await r.json()}catch(e){return}
+  privSec.hidden=false;
+  if(saved&&saved.salt===privIdx.kdf.salt){
+    try{const key=await crypto.subtle.importKey('raw',b64d(saved.key),'AES-GCM',false,['decrypt']);
+      privShowUnlocked(await privUnlock(key));return}catch(e){}
+  }
+  // Gemerkter Schlüssel passt nicht mehr (z. B. neu verschlüsselt)
+  if(saved)try{localStorage.removeItem(PKEY)}catch(e){}
+}
+document.getElementById('privform').onsubmit=async e=>{
+  e.preventDefault();if(!privIdx)return;
+  const pw=document.getElementById('privpw').value;if(!pw)return;
+  toast('Entschlüssele …');
+  let key;
+  try{key=await privDeriveKey(pw);await privDecrypt(key,b64d(privIdx.manifest))}
+  catch(err){toast('Falsches Passwort');return}
+  try{
+    const n=await privUnlock(key);
+    if(document.getElementById('privmerk').checked)
+      try{localStorage.setItem(PKEY,JSON.stringify({salt:privIdx.kdf.salt,key:b64e(await crypto.subtle.exportKey('raw',key))}))}catch(e){}
+    document.getElementById('privpw').value='';
+    privShowUnlocked(n);toast(n+' interne Ebene(n) geladen');
+  }catch(err){toast('Fehler beim Laden: '+err.message)}
+};
+document.getElementById('privlock').onclick=()=>{
+  try{localStorage.removeItem(PKEY)}catch(e){}
+  location.reload();
+};
+privInit();
 
 // ── Toast & Start ─────────────────────────────────────────────────────
 let tt;function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('on');clearTimeout(tt);tt=setTimeout(()=>t.classList.remove('on'),2000)}
