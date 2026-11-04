@@ -155,7 +155,7 @@ table.q td:first-child,table.q th:first-child{text-align:left}
     <div class="phead">
       <h1>Luftbildatlas Lärz <button class="mob-reset" id="mob_reset" title="Heute + Grundst&uuml;cke">&loz;</button></h1>
       <div class="pull-hint">Antippen f&uuml;r Ebenen und Einstellungen &darr;</div>
-      <p>Ehemaliger Fliegerhorst Lärz (heute Müritz Airpark) &ndash; historische und aktuelle Karten im Vergleich. Luftaufklärung vom 28.05.1944, 08.04.1945 und 11.04.1945, Luftbilder 1953 und 1991, Messtischblatt, Geländemodell, basemap.de und Satellitenbilder. ETRS89 / UTM 33N.</p>
+      <p>Ehemaliger Fliegerhorst Lärz (heute Müritz Airpark) &ndash; historische und aktuelle Karten im Vergleich. Luftaufklärung von Mai 1944 bis 11.04.1945, Luftbilder 1953 und 1991, Messtischblatt, Geländemodell, basemap.de und Satellitenbilder. ETRS89 / UTM 33N.</p>
     </div>
     <div class="pbody">
       <div class="sec"><h2>Ebenen</h2><div id="layers"></div></div>
@@ -251,10 +251,16 @@ table.q td:first-child,table.q th:first-child{text-align:left}
         <h2>Genauigkeit</h2>
         <table class="q">
           <tr><th>Bild</th><th>Passpunkte</th><th>Restfehler</th><th>m/px</th></tr>
+          <tr><td colspan="4"><i>Hochaufgel&ouml;ste Scans (NCAP)</i></td></tr>
           <tr><td>3054</td><td>71 + Verkn.</td><td>1,8 m</td><td>0,195</td></tr>
           <tr><td>4071</td><td>29 + Verkn.</td><td>2,9 m</td><td>0,183</td></tr>
           <tr><td>4053</td><td>105 + 1280</td><td>2,5 m</td><td>0,194</td></tr>
+          <tr><td colspan="4"><i>Vorschauen (LAiV M-V)</i></td></tr>
+          <tr><td>10.05.44</td><td>nur Verkn.</td><td>~3&ndash;6 m</td><td>~2</td></tr>
           <tr><td>28.05.44</td><td>36&ndash;154 je Bild</td><td>1,7&ndash;2,3 m</td><td>~1,8</td></tr>
+          <tr><td>04.08.44</td><td>19&ndash;35 je Bild</td><td>1,5&ndash;1,8 m</td><td>~9</td></tr>
+          <tr><td>13.09.44</td><td>36</td><td>1,8 m</td><td>~9</td></tr>
+          <tr><td>24.12.44</td><td>35 + Verkn.</td><td>2,5 m</td><td>~7</td></tr>
           <tr><td>08.04.45</td><td>53&ndash;178 je Bild</td><td>1,4&ndash;2,2 m</td><td>~1,7</td></tr>
         </table>
         <p class="note">Passpunkte automatisch per Bildkorrelation gegen das Luftbild 1953 (Bahnen, Rollwege, Kanal). Verknüpfungspunkte zwischen Bildern desselben Flugs. Projektiv entzerrt (RANSAC). Die heutige Startbahn wurde nach 1945 umgebaut und passt deshalb nicht 1:1.</p>
@@ -279,7 +285,7 @@ table.q td:first-child,table.q th:first-child{text-align:left}
           Nach der Installation &ouml;ffnet sich der Atlas im Vollbild mit dem M&uuml;ritz-Airpark-Icon. GPS-Standort funktioniert auch in der App-Version.
         </div>
       </div>
-      <div class="sec note">Quellen: NCAP (US7/0094/C, Frames 3054, 4053, 4071; &copy; National Collection of Aerial Photography) &middot; DOP, DOP 1953, DOP 1991, ALKIS, TK25, DTK25, DGM &copy; GeoBasis-DE/M-V (CC BY 4.0) &middot; Historische Luftbilder 28.05.1944 und 08.04.1945: LAiV M-V, &copy; GeoBasis-DE/MV 2026, <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a> (Quelle verändert: entzerrt und mosaikiert) &middot; TopPlusOpen, Sentinel-2 &copy; BKG (dl-de/by-2-0) &middot; basemap.de &copy; BKG / OSM-Mitwirkende &middot; Google Satellite &copy; Google. Keine Kampfmittelauskunft &ndash; für Bauvorhaben gilt allein die Auskunft des MBD M-V (LPBK M-V).</div>
+      <div class="sec note">Quellen: NCAP (US7/0094/C, Frames 3054, 4053, 4071; &copy; National Collection of Aerial Photography) &middot; DOP, DOP 1953, DOP 1991, ALKIS, TK25, DTK25, DGM &copy; GeoBasis-DE/M-V (CC BY 4.0) &middot; Historische Luftbilder 1944 und 08.04.1945: LAiV M-V, &copy; GeoBasis-DE/MV 2026, <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener">CC BY 4.0</a> (Quelle verändert: entzerrt und mosaikiert) &middot; TopPlusOpen, Sentinel-2 &copy; BKG (dl-de/by-2-0) &middot; basemap.de &copy; BKG / OSM-Mitwirkende &middot; Google Satellite &copy; Google. Keine Kampfmittelauskunft &ndash; für Bauvorhaben gilt allein die Auskunft des MBD M-V (LPBK M-V).</div>
       <div class="sec note" style="margin-top:8px;border-top:1px solid var(--line);padding-top:8px">Erstellt von soenke.bartling@gmail.com mit Claude, Cursor und Grok.</div>
     </div>
   </aside>
@@ -377,16 +383,24 @@ const LAYERS=[
    desc:'Historisches Orthophoto aus CIR-Infrarot-Befliegung 1990/91 (Falschfarben). 0,6 m/px (hier heruntergeladen mit 4000 px auf 2400 m). Zeigt den Flugplatz kurz nach der Wende, noch mit militärischer Infrastruktur. Amtlich georeferenziert. Quelle: GeoBasis-DE/M-V (CC BY 4.0).'},
   {id:'1953',name:'Luftbild 1953',sub:'DOP M-V, s/w',src:'dop_1953.jpg',kind:'full',on:false,op:1,adj:true,sw:'#9a9a92',
    desc:'Historisches Orthophoto aus Befliegung 1953, Schwarzweiß. 1,0 m/px. Referenzbild für die Georeferenzierung der 1945er Aufnahmen (Bahnen und Rollwege noch identisch). Amtlich georeferenziert. Quelle: GeoBasis-DE/M-V (CC BY 4.0).'},
-  {id:'lb440528',name:'Luftbild 28.05.1944',sub:'US 7GR 1619, LAiV M-V',src:'luftbild_1944-05-28.webp',kind:'full',on:false,op:1,adj:true,sw:'#8d6e63',
-   desc:'Amerikanische Luftaufklärung vom 28.05.1944 (US 7th Photo Group, Sortie 1619), knapp ein Jahr vor dem Angriff vom 10.04.1945. Schon damals viele Bombentrichter um Hallen und Kanal. Mosaik aus 9 Bildern (Flug 44_186, Bilder 2005-2009, 2063-2066), Vorschauauflösung ca. 1,8 m/px. Je Bild 36-154 Passpunkte gegen DOP 1953, projektiv entzerrt, Restfehler 1,7-2,3 m. Quelle: © GeoBasis-DE/MV 2026, CC BY 4.0 (Quelle verändert).'},
-  {id:'lb450408',name:'Luftbild 08.04.1945',sub:'RAF 106G/5234, LAiV M-V',src:'luftbild_1945-04-08.webp',kind:'full',on:false,op:1,adj:true,sw:'#a1887f',
-   desc:'Britische Luftaufklärung vom 08.04.1945 (RAF 106G/5234), zwei Tage vor dem Angriff der 8th Air Force am 10.04.1945. Mosaik aus 13 Bildern (Flüge 45_011 und 45_012), Vorschauauflösung ca. 1,7 m/px. Je Bild 53-178 Passpunkte gegen DOP 1953, projektiv entzerrt, Restfehler 1,4-2,2 m. Quelle: © GeoBasis-DE/MV 2026, CC BY 4.0 (Quelle verändert).'},
-  {id:'3054',name:'1945 - Frame 3054',sub:'US7/0094/C',src:'f3054.jpg',kind:'frame',on:false,op:.85,adj:true,sw:'#d070d0',
-   desc:'Luftaufklärung vom 11.04.1945 (einen Tag nach dem Angriff der 8th Air Force), Frame 3054. Georeferenziert per automatischer Bildkorrelation gegen DOP 1953 an 71 Passpunkten + Verknüpfungspunkte zu Frame 4071. Projektiv entzerrt (RANSAC). Restfehler 1,8 m, 0,195 m/px im Original. Quelle: NCAP.'},
-  {id:'4071',name:'1945 - Frame 4071',sub:'US7/0094/C',src:'f4071.jpg',kind:'frame',on:false,op:.85,adj:true,sw:'#e0b000',
-   desc:'Luftaufklärung vom 11.04.1945, Frame 4071 (zentrales Bild). 29 Passpunkte gegen DOP 1953 + Verknüpfungspunkte zu Frames 3054 und 4053. Projektiv entzerrt. Restfehler 2,9 m, 0,183 m/px. Quelle: NCAP.'},
-  {id:'4053',name:'1945 - Frame 4053',sub:'US7/0094/C',src:'f4053.jpg',kind:'frame',on:false,op:.85,adj:true,sw:'#30b070',
-   desc:'Luftaufklärung vom 11.04.1945, Frame 4053. 105 Passpunkte + 1.280 Verknüpfungspunkte zu Frame 4071. Projektiv entzerrt. Restfehler 2,5 m, 0,194 m/px. Quelle: NCAP.'},
+  {id:'lb440510',name:'Luftbild 10.05.1944',sub:'LAiV M-V, Vorschau',src:'luftbild_1944-05-10.webp',kind:'full',on:false,op:1,adj:true,sw:'#6d4c41',
+   desc:'Luftaufklärung vom 10.05.1944 (Flug 44_080, Bilder 2028-2031). Die Bilder liegen überwiegend nordöstlich, sie zeigen nur den Nordosten des Arbeitsgebiets. <b>Vorschau</b> (frei verfügbar, kein Vollscan), ca. 2 m/px. Nur über SIFT-Verknüpfung mit den Bildern vom 28.05.1944 eingepasst, nicht gegen DOP 1953 nachgemessen (zu wenig Überlappung), Lage deshalb unsicherer (geschätzt 3-6 m). Quelle: © GeoBasis-DE/MV 2026, CC BY 4.0 (Quelle verändert).'},
+  {id:'lb440528',name:'Luftbild 28.05.1944',sub:'US 7GR 1619, LAiV M-V, Vorschau',src:'luftbild_1944-05-28.webp',kind:'full',on:false,op:1,adj:true,sw:'#8d6e63',
+   desc:'Amerikanische Luftaufklärung vom 28.05.1944 (US 7th Photo Group, Sortie 1619), knapp ein Jahr vor dem Angriff vom 10.04.1945. Schon damals viele Bombentrichter um Hallen und Kanal. Mosaik aus 9 Bildern (Flug 44_186, Bilder 2005-2009, 2063-2066), <b>Vorschau</b> (frei verfügbar, kein Vollscan), ca. 1,8 m/px. Je Bild 36-154 Passpunkte gegen DOP 1953, projektiv entzerrt, Restfehler 1,7-2,3 m. Quelle: © GeoBasis-DE/MV 2026, CC BY 4.0 (Quelle verändert).'},
+  {id:'lb440804',name:'Luftbild 04.08.1944',sub:'LAiV M-V, Vorschau, kleiner Maßstab',src:'luftbild_1944-08-04.webp',kind:'full',on:false,op:1,adj:true,sw:'#795548',
+   desc:'Luftaufklärung vom 04.08.1944 (Flug 44_023, Bilder 7005 und 7006). Kleinmaßstäbige Übersichtsaufnahme, ein Bild deckt rund 14 km ab. <b>Vorschau</b> (frei verfügbar, kein Vollscan), nur ca. 9 m/px, für Details zu grob. 19-35 Passpunkte gegen DOP 1953, Restfehler 1,5-1,8 m. Quelle: © GeoBasis-DE/MV 2026, CC BY 4.0 (Quelle verändert).'},
+  {id:'lb440913',name:'Luftbild 13.09.1944',sub:'LAiV M-V, Vorschau, kleiner Maßstab',src:'luftbild_1944-09-13.webp',kind:'full',on:false,op:1,adj:true,sw:'#8d6e63',
+   desc:'Luftaufklärung vom 13.09.1944 (Flug 44_090, Bild 8016). Kleinmaßstäbige Übersichtsaufnahme, ein Bild deckt rund 14 km ab; die SW-NO-Bahn ist im Bau. <b>Vorschau</b> (frei verfügbar, kein Vollscan), nur ca. 9 m/px. 36 Passpunkte gegen DOP 1953, Restfehler 1,8 m. Quelle: © GeoBasis-DE/MV 2026, CC BY 4.0 (Quelle verändert).'},
+  {id:'lb441224',name:'Luftbild 24.12.1944',sub:'LAiV M-V, Vorschau, kleiner Maßstab',src:'luftbild_1944-12-24.webp',kind:'full',on:false,op:1,adj:true,sw:'#bcaaa4',
+   desc:'Luftaufklärung vom 24.12.1944 (Flug 44_009, Bilder 7022 und 7023). Kleinmaßstäbig, ein Bild deckt rund 10 km ab; die SW-NO-Bahn ist im Bau. <b>Vorschau</b> (frei verfügbar, kein Vollscan), ca. 6-7 m/px. 35 Passpunkte gegen DOP 1953 (Bild 7023), Restfehler 2,5 m; Bild 7022 über Verknüpfung mit 7023 eingepasst. Quelle: © GeoBasis-DE/MV 2026, CC BY 4.0 (Quelle verändert).'},
+  {id:'lb450408',name:'Luftbild 08.04.1945',sub:'RAF 106G/5234, LAiV M-V, Vorschau',src:'luftbild_1945-04-08.webp',kind:'full',on:false,op:1,adj:true,sw:'#a1887f',
+   desc:'Britische Luftaufklärung vom 08.04.1945 (RAF 106G/5234), zwei Tage vor dem Angriff der 8th Air Force am 10.04.1945. Mosaik aus 13 Bildern (Flüge 45_011 und 45_012), <b>Vorschau</b> (frei verfügbar, kein Vollscan), ca. 1,7 m/px. Je Bild 53-178 Passpunkte gegen DOP 1953, projektiv entzerrt, Restfehler 1,4-2,2 m. Quelle: © GeoBasis-DE/MV 2026, CC BY 4.0 (Quelle verändert).'},
+  {id:'3054',name:'11.04.1945 - Frame 3054',sub:'US7/0094/C, NCAP hochaufgelöst',src:'f3054.jpg',kind:'frame',on:false,op:.85,adj:true,sw:'#d070d0',
+   desc:'Luftaufklärung vom 11.04.1945 (einen Tag nach dem Angriff der 8th Air Force), Frame 3054. Georeferenziert per automatischer Bildkorrelation gegen DOP 1953 an 71 Passpunkten + Verknüpfungspunkte zu Frame 4071. Projektiv entzerrt (RANSAC). Restfehler 1,8 m, 0,195 m/px im Original. <b>Hochaufgelöster Vollscan</b> (NCAP, gekauft). Quelle: NCAP.'},
+  {id:'4071',name:'11.04.1945 - Frame 4071',sub:'US7/0094/C, NCAP hochaufgelöst',src:'f4071.jpg',kind:'frame',on:false,op:.85,adj:true,sw:'#e0b000',
+   desc:'Luftaufklärung vom 11.04.1945, Frame 4071 (zentrales Bild). 29 Passpunkte gegen DOP 1953 + Verknüpfungspunkte zu Frames 3054 und 4053. Projektiv entzerrt. Restfehler 2,9 m, 0,183 m/px. <b>Hochaufgelöster Vollscan</b> (NCAP, gekauft). Quelle: NCAP.'},
+  {id:'4053',name:'11.04.1945 - Frame 4053',sub:'US7/0094/C, NCAP hochaufgelöst',src:'f4053.jpg',kind:'frame',on:false,op:.85,adj:true,sw:'#30b070',
+   desc:'Luftaufklärung vom 11.04.1945, Frame 4053. 105 Passpunkte + 1.280 Verknüpfungspunkte zu Frame 4071. Projektiv entzerrt. Restfehler 2,5 m, 0,194 m/px. <b>Hochaufgelöster Vollscan</b> (NCAP, gekauft). Quelle: NCAP.'},
   {id:'tk25ddr',name:'TK25 DDR-Ausgabe',sub:'1981-1987',src:'tk25_ddr.jpg',kind:'full',on:false,op:1,adj:false,sw:'#b71c1c',
    desc:'Topographische Karte 1:25.000, DDR-Ausgabe (Ausgabestaat), Aufnahmen 1981-1987. Zeigt den Flugplatz als militärisches Sperrgebiet der NVA/GSSD. Quelle: GeoBasis-DE/M-V (CC BY 4.0).'},
   {id:'tk25m',name:'Messtischblatt',sub:'1877-1943',src:'tk25_messtisch.jpg',kind:'full',on:false,op:1,adj:false,sw:'#5d4037',
@@ -394,9 +408,7 @@ const LAYERS=[
   {id:'dgm',name:'Geländemodell',sub:'DGM Schummerung',src:'dgm.png',kind:'full',on:false,op:.7,adj:false,sw:'#4e342e',
    desc:'Digitales Geländemodell als Schummerungsdarstellung. Aus Laserscanning (LiDAR), Bodenauflösung 1-2 m. Zeigt Geländeformen, Senken und Erhebungen. Quelle: GeoBasis-DE/M-V (CC BY 4.0).'},
   {id:'alkis',name:'Flurstücke + Gebäude',sub:'ALKIS',src:'alkis.png',kind:'full',on:true,op:1,adj:false,sw:'#e8d000',
-   desc:'Amtliches Liegenschaftskataster (ALKIS): Flurstücksgrenzen und Gebäudegrundrisse. Amtlich georeferenziert. Quelle: GeoBasis-DE/M-V (CC BY 4.0).'},
-  {id:'foot',name:'Bildränder 1945',sub:'Umrisse der drei Aufnahmen',kind:'foot',on:false,op:1,adj:false,sw:'#ffffff',
-   desc:'Zeigt die Umrisse (Clip-Bereiche) der drei Luftaufklärungsbilder von 1945.'}
+   desc:'Amtliches Liegenschaftskataster (ALKIS): Flurstücksgrenzen und Gebäudegrundrisse. Amtlich georeferenziert. Quelle: GeoBasis-DE/M-V (CC BY 4.0).'}
 ];
 function restoreState(L){const s=store[L.id];if(s){L.on=s.on??L.on;L.op=s.op??L.op;L.a=s.a}L.a=L.a||{dx:0,dy:0,rot:0,sc:100};
   if(L.kind==='frame'&&!L.f)L.f=D.frames[L.id]}
@@ -410,7 +422,7 @@ function centerOf(L){
   if(L.kind==='frame'){const f=L.f;return applyH(f.H,f.w/2,f.h/2)}
   return[1200,1200];
 }
-let svgFoot,annoSvg;
+let annoSvg;
 function makeLayerEl(L){
   const d=document.createElement('div');d.className='lyr'+(L.kind==='full'?' full':'');L.el=d;
   if(L.kind==='google'){L._loaded=false}
@@ -420,10 +432,6 @@ function makeLayerEl(L){
     const c=f.clip;i.style.clipPath=f.poly?`polygon(${f.poly.map(p=>p[0]+'px '+p[1]+'px').join(',')})`
       :`inset(${c[1]}px ${f.w-c[2]}px ${f.h-c[3]}px ${c[0]}px)`;d.appendChild(i);L._img=i}
   if(L.blend)d.style.mixBlendMode=L.blend;
-  if(L.kind==='foot'){
-    const s=document.createElementNS('http://www.w3.org/2000/svg','svg');
-    s.setAttribute('viewBox','0 0 2400 2400');s.setAttribute('width','2400');s.setAttribute('height','2400');
-    s.style.cssText='position:absolute;overflow:visible';svgFoot=s;d.appendChild(s)}
   world.appendChild(d);
 }
 LAYERS.forEach(makeLayerEl);
@@ -433,16 +441,6 @@ annoSvg.setAttribute('viewBox','0 0 2400 2400');annoSvg.setAttribute('width','24
 annoSvg.style.cssText='position:absolute;left:0;top:0;overflow:visible;pointer-events:none';
 world.appendChild(annoSvg);
 
-function drawFoot(){
-  if(!svgFoot)return;
-  let h='';const cols={3054:'#d070d0',4071:'#e0b000',4053:'#30b070'};
-  for(const id of['3054','4071','4053']){const L=LAYERS.find(x=>x.id===id),f=D.frames[id],c=f.clip;
-    const pts=[[c[0],c[1]],[c[2],c[1]],[c[2],c[3]],[c[0],c[3]]].map(p=>adjPoint(L,applyH(f.H,p[0],p[1])));
-    h+=`<polygon points="${pts.map(p=>p.join(',')).join(' ')}" fill="none" stroke="${cols[id]}" stroke-width="2" vector-effect="non-scaling-stroke"/><text x="${pts[0][0]}" y="${pts[0][1]-4}" font-size="14" fill="${cols[id]}" stroke="#000" stroke-width="1" paint-order="stroke" font-family="Barlow Condensed,sans-serif">Frame ${id}</text>`}
-  svgFoot.innerHTML=h;
-}
-function adjPoint(L,[x,y]){const a=L.a,[cx,cy]=centerOf(L),s=a.sc/100,r=a.rot*Math.PI/180;
-  const ux=(x-cx)*s,uy=(y-cy)*s;return[cx+ux*Math.cos(r)-uy*Math.sin(r)+a.dx,cy+ux*Math.sin(r)+uy*Math.cos(r)+a.dy]}
 function applyLayer(L){
   L.el.hidden=!L.on;L.el.style.opacity=L.op;
   if(L.kind==='google'&&L.on&&!L._loaded){buildGoogleTiles(L.el);L._loaded=true}
@@ -489,7 +487,7 @@ function makeRow(L){
   r.querySelector('[data-dn]').onclick=()=>moveLayer(L,-1);
 }
 LAYERS.slice().reverse().forEach(makeRow);
-LAYERS.forEach(applyLayer);drawFoot();
+LAYERS.forEach(applyLayer);
 
 // ── Ebene anpassen ────────────────────────────────────────────────────
 const adjbox=document.getElementById('adjbox');
@@ -504,11 +502,11 @@ function selectAdj(L){
 function syncAdj(){if(!selected)return;const a=selected.a;
   for(const[k]of F){document.getElementById('r_'+k).value=k==='dy'?-a[k]:a[k];document.getElementById('n_'+k).value=+(k==='dy'?-a[k]:a[k]).toFixed(2)}}
 for(const[k]of F){
-  const set=v=>{if(!selected)return;v=+v;if(isNaN(v))return;selected.a[k]=k==='dy'?-v:v;applyLayer(selected);drawFoot();persist(selected);syncAdj()};
+  const set=v=>{if(!selected)return;v=+v;if(isNaN(v))return;selected.a[k]=k==='dy'?-v:v;applyLayer(selected);persist(selected);syncAdj()};
   document.getElementById('r_'+k).oninput=e=>set(e.target.value);
   document.getElementById('n_'+k).onchange=e=>set(e.target.value);
 }
-document.getElementById('adjreset').onclick=()=>{if(!selected)return;selected.a={dx:0,dy:0,rot:0,sc:100};applyLayer(selected);drawFoot();persist(selected);syncAdj();toast('Ebene zurückgesetzt')};
+document.getElementById('adjreset').onclick=()=>{if(!selected)return;selected.a={dx:0,dy:0,rot:0,sc:100};applyLayer(selected);persist(selected);syncAdj();toast('Ebene zurückgesetzt')};
 document.getElementById('adjdone').onclick=()=>selectAdj(null);
 let dragLayer=false;const dm=document.getElementById('dragmode');
 function setDrag(v){dragLayer=v;dm.setAttribute('aria-pressed',v);view.classList.toggle('movelayer',v)}
@@ -554,7 +552,7 @@ view.addEventListener('pointermove',e=>{
   if(ptrs.size===2&&pinch){const[a,b]=[...ptrs.values()];const d=Math.hypot(a[0]-b[0],a[1]-b[1]);
     const r=view.getBoundingClientRect();zoomAt(d/pinch.d,(a[0]+b[0])/2-r.left,(a[1]+b[1])/2-r.top);pinch.d=d;return}
   const dx=e.clientX-last[0],dy=e.clientY-last[1];last=[e.clientX,e.clientY];
-  if(dragLayer&&selected){selected.a.dx+=dx/z;selected.a.dy+=dy/z;applyLayer(selected);drawFoot();syncAdj()}
+  if(dragLayer&&selected){selected.a.dx+=dx/z;selected.a.dy+=dy/z;applyLayer(selected);syncAdj()}
   else if(tool==='pan'||ptrs.size>0&&tool!=='pan'){tx+=dx;ty+=dy;render()}
 });
 const up=e=>{
@@ -583,7 +581,7 @@ window.addEventListener('keydown',e=>{
   if(e.key==='Escape'){if(tool!=='pan'){if(tool==='measure'&&curMeasure.length>0){curMeasure=[];renderAnnotations()}setTool('pan')}else if(selected)selectAdj(null)}
   if(selected&&e.key.startsWith('Arrow')){const s=e.shiftKey?10:1;const a=selected.a;
     if(e.key==='ArrowLeft')a.dx-=s;if(e.key==='ArrowRight')a.dx+=s;if(e.key==='ArrowUp')a.dy-=s;if(e.key==='ArrowDown')a.dy+=s;
-    e.preventDefault();applyLayer(selected);drawFoot();persist(selected);syncAdj()}
+    e.preventDefault();applyLayer(selected);persist(selected);syncAdj()}
 });
 window.addEventListener('keyup',e=>{if(e.key==='h'||e.key==='H'){hHeld=false;frames45().forEach(applyLayer)}});
 
@@ -663,22 +661,22 @@ const PRE={
  'topo':    {...allOff,topo:[1,1],alkis:[1,.6]},
  'google':  {...allOff,google:[1,1],alkis:[1,.7]},
  // 1945 Kombinationen
- '1945':    {...f45,heute:[1,1],foot:[1]},
- '1945alk': {...f45,heute:[1,1],alkis:[1,.8],foot:[1]},
+ '1945':    {...f45,heute:[1,1]},
+ '1945alk': {...f45,heute:[1,1],alkis:[1,.8]},
  '1953':    {...allOff,'1953':[1,1],'3054':[1,.6],'4071':[1,.6],'4053':[1,.6]},
  '1944':    {...allOff,heute:[1,1],lb440528:[1,.85]},
- 'vornach': {...f45,lb450408:[1,1],foot:[1]},
+ 'vornach': {...f45,lb450408:[1,1]},
  // Historisch
  '1991':    {...allOff,'1991':[1,1],'3054':[1,.5],'4071':[1,.5],'4053':[1,.5]},
  '1991h':   {...allOff,heute:[1,1],'1991':[1,.6]},
- 'ddr':     {...allOff,tk25ddr:[1,1],'3054':[1,.6],'4071':[1,.6],'4053':[1,.6],foot:[1]},
- 'messtisch':  {...allOff,tk25m:[1,1],'3054':[1,.65],'4071':[1,.65],'4053':[1,.65],foot:[1]},
+ 'ddr':     {...allOff,tk25ddr:[1,1],'3054':[1,.6],'4071':[1,.6],'4053':[1,.6]},
+ 'messtisch':  {...allOff,tk25m:[1,1],'3054':[1,.65],'4071':[1,.65],'4053':[1,.65]},
  'messtischh': {...allOff,heute:[1,1],tk25m:[1,.5]},
  // Gelände
  'relief':  {...allOff,dgm:[1,.8],'3054':[1,.7],'4071':[1,.7],'4053':[1,.7]},
  'reliefh': {...allOff,heute:[1,1],dgm:[1,.5]},
  // Alles 1945
- 'alle1945':{...f45,heute:[1,1],'1953':[1,.3],alkis:[1,.5],foot:[1],dgm:[1,.3]}
+ 'alle1945':{...f45,heute:[1,1],'1953':[1,.3],alkis:[1,.5],dgm:[1,.3]}
 };
 // Interne Ebenen kommen in keinem Preset vor und werden ausgeschaltet
 function applyPreset(p){
@@ -722,7 +720,7 @@ function exportImage(fmt){
   ctx.save();ctx.translate(tx,ty);ctx.scale(z,z);
   // Sichtbare Ebenen zeichnen
   for(const L of LAYERS){
-    if(!L.on||L.kind==='foot'||L.kind==='google')continue;
+    if(!L.on||L.kind==='google')continue;
     ctx.globalAlpha=L.op;
     if(L.kind==='full'&&L._img&&L._img.complete){
       ctx.save();
@@ -811,7 +809,7 @@ function applySession(s){
     if(Number.isFinite(s.ansicht.tx))tx=s.ansicht.tx;
     if(Number.isFinite(s.ansicht.ty))ty=s.ansicht.ty;
   }
-  drawFoot();syncAdj();render();
+  syncAdj();render();
   toast('Sitzung geladen ('+new Date(s.datum).toLocaleDateString('de')+')');
 }
 document.getElementById('sess_save').onclick=()=>{
@@ -838,7 +836,7 @@ sessFile.onchange=e=>{
 document.getElementById('export').onclick=()=>{const o={};LAYERS.filter(L=>L.adj).forEach(L=>{const a=L.a;if(a.dx||a.dy||a.rot||a.sc!==100)o[L.id]={ost_m:+a.dx.toFixed(2),nord_m:+(-a.dy).toFixed(2),drehung_grad:a.rot,massstab_proz:a.sc}});
   const t=JSON.stringify(o,null,1)||'{}';const box=document.getElementById('exportbox');box.value=Object.keys(o).length?t:'Keine Anpassungen.';box.hidden=false;
   navigator.clipboard?.writeText(box.value).then(()=>toast('In die Zwischenablage kopiert'),()=>{box.select();toast('Text markiert, bitte kopieren')})};
-document.getElementById('resetall').onclick=()=>{LAYERS.forEach(L=>{L.a={dx:0,dy:0,rot:0,sc:100};applyLayer(L);persist(L)});drawFoot();syncAdj();toast('Verschiebungen zurückgesetzt')};
+document.getElementById('resetall').onclick=()=>{LAYERS.forEach(L=>{L.a={dx:0,dy:0,rot:0,sc:100};applyLayer(L);persist(L)});syncAdj();toast('Verschiebungen zurückgesetzt')};
 document.getElementById('resetfull').onclick=()=>{
   if(!confirm('Alle Einstellungen, Messungen und Marker auf Werkseinstellung zurücksetzen?'))return;
   try{localStorage.removeItem(LS)}catch(e){}

@@ -27,9 +27,13 @@ python3 -m http.server 8080
 |---|---|---|---|
 | Luftbild 1991 | DOP CIR-Infrarot, GeoBasis-DE/M-V | 0,6 m/px | CC BY 4.0 |
 | Luftbild 1953 | DOP, GeoBasis-DE/M-V | 1,0 m/px | CC BY 4.0 |
-| 1945 Frames 3054, 4071, 4053 | NCAP, Sortie US7/0094/C | 0,18-0,20 m/px | (C) NCAP |
-| Luftbild 08.04.1945 | LAiV M-V, RAF 106G/5234 (Mosaik aus 13 Vorschaubildern) | ~1,7 m/px | CC BY 4.0 |
-| Luftbild 28.05.1944 | LAiV M-V, US 7GR Sortie 1619 (Mosaik aus 9 Vorschaubildern) | ~1,8 m/px | CC BY 4.0 |
+| 11.04.1945 Frames 3054, 4071, 4053 | NCAP, Sortie US7/0094/C, **hochaufgelöster Scan (gekauft)** | 0,18-0,20 m/px | (C) NCAP |
+| Luftbild 08.04.1945 | LAiV M-V, RAF 106G/5234, Mosaik aus 13 **Vorschaubildern** | ~1,7 m/px | CC BY 4.0 |
+| Luftbild 24.12.1944 | LAiV M-V, Flug 44_009, 2 **Vorschaubilder**, kleiner Maßstab | ~7 m/px | CC BY 4.0 |
+| Luftbild 13.09.1944 | LAiV M-V, Flug 44_090, 1 **Vorschaubild**, kleiner Maßstab | ~9 m/px | CC BY 4.0 |
+| Luftbild 04.08.1944 | LAiV M-V, Flug 44_023, 2 **Vorschaubilder**, kleiner Maßstab | ~9 m/px | CC BY 4.0 |
+| Luftbild 28.05.1944 | LAiV M-V, US 7GR Sortie 1619, Mosaik aus 9 **Vorschaubildern** | ~1,8 m/px | CC BY 4.0 |
+| Luftbild 10.05.1944 | LAiV M-V, Flug 44_080, 4 **Vorschaubilder**, nur Nordostrand | ~2 m/px | CC BY 4.0 |
 
 ### Historische Karten
 | Ebene | Quelle | Zeitraum | Lizenz |
@@ -60,7 +64,7 @@ Die drei hochauflösenden Luftaufklärungsbilder vom 11.04.1945 (einen Tag nach 
 
 Die heutige Startbahn wurde nach 1945 umgebaut und passt deshalb nicht exakt.
 
-### Luftbilder 28.05.1944 und 08.04.1945 (LAiV M-V)
+### Luftbilder 1944 und 08.04.1945 (LAiV M-V)
 
 Das LAiV M-V stellt im [Downloadportal](https://laiv.geodaten-mv.de/afgvk/Luftbilder/Vorschau?produkt=LB) Vorschauen alliierter Kriegsluftbilder frei bereit (1536 px breit, CC BY 4.0). Die Vorschauen und der Katalog liegen in `rohdaten/laiv_vorschau/`.
 
@@ -69,7 +73,35 @@ python3 skripte/laiv_reg.py      # Georeferenzierung -> georeferenz_parameter/LA
 python3 skripte/laiv_mosaik.py   # Mosaik je Flugtag -> app/luftbild_<Datum>.webp
 ```
 
-Start per SIFT gegen ein Mosaik der NCAP-Frames 1945 (für 1944 aus drei Handpasspunkten an Bild 2008), weitere Bilder desselben Flugs über SIFT-Verknüpfung, danach Template-Korrelation gegen DOP 1953. Restfehler je Bild 1,4-2,3 m. Volle Scans sind beim LAiV kostenpflichtig (25 € je Bild, Mindestentgelt 60 € je Auftrag, Stand 01.01.2026).
+Start per SIFT gegen ein Mosaik der NCAP-Frames 1945 (für 1944 aus drei Handpasspunkten an Bild 2008), weitere Bilder über SIFT-Verknüpfung mit schon registrierten Bildern (auch anderer Flugtage), danach Template-Korrelation gegen DOP 1953. Die Bilder vom 10.05.1944 und Bild 7022 (24.12.1944) treffen das Arbeitsgebiet nur am Rand und sind allein über die Verknüpfung eingepasst. Restfehler je Bild 1,4-2,5 m.
+
+### Hochaufgelöste Scans: Bestand und Kosten
+
+Im Atlas sind nur die drei NCAP-Frames vom 11.04.1945 hochaufgelöst (0,18-0,20 m/px). Alle LAiV-Ebenen beruhen auf den freien Vorschaubildern (1536 px Kantenlänge). Ein Vollscan wäre voraussichtlich rund zehnmal feiner: etwa 0,2 m/px statt 1,7-2 m/px bei den großmaßstäbigen Flügen und etwa 1 m/px statt 7-9 m/px bei den Übersichtsaufnahmen von August bis Dezember 1944.
+
+**Bereits bezahlt:** 3 Scans bei der NCAP (3054, 4053, 4071) zu je 35 £, zusammen **105 £** (ca. 120 €).
+
+**Beim LAiV M-V kaufbar** (25 € je Bild, Mindestentgelt 60 € je Auftrag; Entgeltvorschrift ab 01.01.2026):
+
+| Flugtag | Bilder, die das Arbeitsgebiet zeigen | Anzahl | Kosten | Sparsatz (deckt ≥ 98 % ab) |
+|---|---|---:|---:|---|
+| 11.04.1945 | 3053, 3055, 4054 (Lücken neben den NCAP-Frames) | 3 | 75 € | alle 3 – 75 € |
+| 08.04.1945 | 3075-3080, 3093, 3094, 4079, 4091-4097 | 16 | 400 € | 3075, 3078, 3094 – 75 € |
+| 24.12.1944 | 7022-7024 | 3 | 75 € | 7023 – 25 € |
+| 13.09.1944 | 8016 | 1 | 25 € | 8016 – 25 € |
+| 04.08.1944 | 7005, 7006 | 2 | 50 € | 7005 – 25 € |
+| 28.05.1944 | 2005-2009, 2063-2066 | 9 | 225 € | 2007, 2008 – 50 € |
+| 10.05.1944 | 2028-2031 (nur Nordostrand) | 4 | 100 € | 2028, 2031 – 50 € |
+| **Summe** | | **38** | **950 €** | **13 Bilder – 325 €** |
+
+Der Sparsatz wurde aus den Bildumrissen berechnet. Er deckt das Gebiet ab, liegt dann aber stellenweise am Bildrand. Den ganzen LAiV-Katalog für Lärz 1944/45 zu kaufen (83 Bilder, abzüglich der drei schon vorhandenen Frames vom 11.04.1945), kostet 80 × 25 € = **2.000 €**. Dabei sind auch Bilder ohne Anteil am Arbeitsgebiet.
+
+Mögliche Zuschläge:
+
+- Muss ein Bild erst gescannt werden, kommen 13-14 € je Bild hinzu, bei schwierigen Vorlagen 50 % mehr.
+- Gekaufte Daten unterliegen den AGNB. Für eine öffentliche Weitergabe bearbeiteter Folgeprodukte kann eine jährliche Lizenzgebühr anfallen (100-300 % des Entgelts). Das sollte vor einem Kauf mit dem LAiV geklärt werden.
+
+Die Frames 3053, 3055 und 4054 bietet auch die NCAP an (35 £ je Bild). Das LAiV ist günstiger.
 
 ## Koordinatensystem
 

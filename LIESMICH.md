@@ -1,6 +1,6 @@
 # Luftbildatlas Lärz
 
-Ehemaliger Fliegerhorst Lärz (heute Müritz Airpark). Alliierte Aufklärungsfotos vom 11.04.1945 (NCAP, Sortie US7/0094/C, Frames 3054, 4053, 4071), einen Tag nach dem Angriff der 8th Air Force (Mission 938), dazu Mosaike vom 28.05.1944 und 08.04.1945 (LAiV M-V), entzerrt und vergleichbar mit den amtlichen Luftbildern von 1953, 1991 und heute, mit historischen Karten und mit aktuellen Satellitenbildern.
+Ehemaliger Fliegerhorst Lärz (heute Müritz Airpark). Alliierte Aufklärungsfotos vom 11.04.1945 (NCAP, Sortie US7/0094/C, Frames 3054, 4053, 4071), einen Tag nach dem Angriff der 8th Air Force (Mission 938), dazu Luftbilder von fünf Flugtagen 1944 und vom 08.04.1945 (LAiV M-V, Vorschauauflösung), entzerrt und vergleichbar mit den amtlichen Luftbildern von 1953, 1991 und heute, mit historischen Karten und mit aktuellen Satellitenbildern.
 
 - `app/index.html` im Browser öffnen. Die `index.html` im Wurzelverzeichnis leitet dorthin weiter (für GitHub Pages).
 - Ebenen, Deckkraft, Reihenfolge, Feinjustierung, Messen, Markieren, Sitzung als JSON, Bild-Export. Die Ebenenliste steht in der README.
@@ -8,7 +8,11 @@ Ehemaliger Fliegerhorst Lärz (heute Müritz Airpark). Alliierte Aufklärungsfot
 - `rohdaten/`: Original-Scans, Vorschauen, Geobasisdaten M-V mit World-Files.
 - `skripte/`: Pipeline. Kartenebenen neu laden, aus dem Projektordner: `python3 skripte/fetch_geobasis.py`.
 
-Genauigkeit: Restfehler der Entzerrung 1,8–2,9 m gegenüber dem Luftbild 1953.
+Genauigkeit: Restfehler der Entzerrung 1,4–2,9 m gegenüber dem Luftbild 1953.
+
+Hochaufgelöst sind nur die drei NCAP-Frames vom 11.04.1945. Sie wurden für 3 × 35 £ = 105 £ gekauft. Alle LAiV-Ebenen sind freie Vorschauen.
+Die Vollscans aller 38 LAiV-Bilder, die das Gebiet zeigen, würden 950 € kosten (25 € je Bild). Ein Sparsatz aus 13 Bildern deckt das Gebiet für 325 € ab. Die Aufstellung steht in der README.
+
 Die heutige Startbahn wurde nach 1945 umgebaut und deckt sich deshalb nicht mit der Kriegsanlage.
 
 **Keine Kampfmittelauskunft.** Für Bauvorhaben gilt allein die Auskunft des Munitionsbergungsdienstes M-V (LPBK).

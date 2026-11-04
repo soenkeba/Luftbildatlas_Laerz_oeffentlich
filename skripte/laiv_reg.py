@@ -13,13 +13,13 @@ Ablauf je Bild:
   2. 3 Iterationen Template-Korrelation auf Gradientenbildern gegen DOP 1953
      (wie reg.py) mit RANSAC -> projektive Homographie.
 
-Nutzung (aus dem Projektordner):  python3 skripte/laiv_reg.py [Muster]
+Nutzung (aus dem Projektordner):  python3 skripte/laiv_reg.py [Muster ...]
 """
 import numpy as np, cv2, json, glob, os, sys
 
 SRC = "rohdaten/laiv_vorschau"
 OUT = "georeferenz_parameter/LAiV_Homographien_Vorschau_px_auf_Karte_m.json"
-pat = sys.argv[1] if len(sys.argv) > 1 else "*"
+pats = sys.argv[1:] or ["*"]
 
 ref = cv2.imread("app/dop_1953.jpg", 0)
 Hh, Ww = ref.shape
@@ -65,10 +65,10 @@ sift.setNFeatures(30000)
 K45 = merkmale(ref45, cv2.erode(m45, np.ones((15, 15), np.uint8)))
 sift.setNFeatures(8000)
 
-def sift_h(A, B):
+def sift_h(A, B, ratio=0.75):
     """Homographie A-px -> B-px, Anzahl Inlier."""
     (pa, da), (pb, db) = A, B
-    g = [a for a, b in matcher.knnMatch(da, db, k=2) if a.distance < 0.75 * b.distance]
+    g = [a for a, b in matcher.knnMatch(da, db, k=2) if a.distance < ratio * b.distance]
     if len(g) < 15: return None, 0
     P = pa[[a.queryIdx for a in g]]; Q = pb[[a.trainIdx for a in g]]
     H, inl = cv2.findHomography(P, Q, cv2.RANSAC, 8.0, maxIters=50000)
@@ -105,27 +105,40 @@ def verfeinern(im, m, Hm):
 
 os.makedirs(os.path.dirname(OUT), exist_ok=True)
 res = json.load(open(OUT)) if os.path.exists(OUT) else {}
-offen = {os.path.basename(f)[:-4]: f for f in sorted(glob.glob(f"{SRC}/{pat}.jpg"))}
+offen = {os.path.basename(f)[:-4]: f for p in pats for f in sorted(glob.glob(f"{SRC}/{p}.jpg"))}
 bilder, feat = {}, {}
 for name, fn in offen.items():
     im = cv2.imread(fn, 0); m = bildmaske(im)
     bilder[name] = (im, m); feat[name] = merkmale(im, m)
+# bereits registrierte Bilder anderer Läufe dienen als Verknüpfungspartner
+for name in res:
+    if name not in feat and os.path.exists(f"{SRC}/{name}.jpg"):
+        im = cv2.imread(f"{SRC}/{name}.jpg", 0); feat[name] = merkmale(im, bildmaske(im))
 
-def annehmen(name, H, wie):
+def annehmen(name, H, wie, stark=False):
+    """stark: Start-H aus sehr gutem SIFT-Verbund; gilt auch ohne Verfeinerung, wenn das Bild
+    das Arbeitsgebiet nur am Rand trifft (zu wenig Fläche für Passpunkte gegen 1953)."""
     im, m = bilder[name]
-    H, rmse, n = verfeinern(im, m, H)
-    if rmse is None or n < 25 or rmse > 4.0:
-        print(f"{name}: verworfen ({wie}, {n} Passpunkte, Restfehler {rmse})"); return False
-    h, w = im.shape; c = np.float32([[[w / 2, h / 2], [w / 2 + 100, h / 2], [w / 2, h / 2 + 100]]])
+    H0 = H; H, rmse, n = verfeinern(im, m, H)
+    if rmse is None or n < 12 or rmse > 4.0:
+        if not stark:
+            print(f"{name}: verworfen ({wie}, {n} Passpunkte, Restfehler {rmse})"); return False
+        H, rmse, n, wie = H0, None, 0, wie + ", ohne Verfeinerung"
+    h, w = im.shape
+    q = cv2.perspectiveTransform(np.float32([[[0, 0], [w, 0], [w, h], [0, h]]]), H)[0]
+    seiten = np.linalg.norm(q - np.roll(q, 1, 0), axis=1)
+    if rmse is None and seiten.max() / seiten.min() > 1.25:   # unverfeinert: Umriss muss annähernd quadratisch bleiben
+        print(f"{name}: verworfen ({wie}, Umriss verzerrt)"); return False
+    c = np.float32([[[w / 2, h / 2], [w / 2 + 100, h / 2], [w / 2, h / 2 + 100]]])
     p = cv2.perspectiveTransform(c, H)[0]
     mpx = (np.linalg.norm(p[1] - p[0]) + np.linalg.norm(p[2] - p[0])) / 200
-    print(f"{name}: {wie}, {n} Passpunkte, Restfehler {rmse:.2f} m, {mpx:.2f} m/px")
-    res[name] = dict(w=w, h=h, H=H.tolist(), n=n, rmse=round(rmse, 2), mpx=round(float(mpx), 3),
+    print(f"{name}: {wie}, {n} Passpunkte, Restfehler {rmse and round(rmse, 2)} m, {mpx:.2f} m/px")
+    res[name] = dict(w=w, h=h, H=H.tolist(), n=n, rmse=rmse and round(rmse, 2), mpx=round(float(mpx), 3),
                      clip=[int(w * .04), int(h * .04), int(w * .96), int(h * .96)])
     json.dump(res, open(OUT, "w"), indent=1)
     return True
 
-# Runde 1: gegen NCAP-Mosaik; Runde 2+: gegen schon registrierte Bilder desselben Tages
+# Runde 1: gegen NCAP-Mosaik; Runde 2+: gegen schon registrierte Bilder (bevorzugt desselben Tages)
 rest = []
 for name in offen:
     H, n = sift_h(feat[name], K45)
@@ -139,14 +152,34 @@ fortschritt = True
 while rest and fortschritt:
     fortschritt = False
     for name in list(rest):
+        # andere Flugtage zählen nur mit Abschlag (Szene hat sich verändert)
         best = (0, None, None)
         for r in res:
-            if r in feat and r[:10] == name[:10]:
+            if r in feat and r != name:
                 if (name, r) not in paare: paare[name, r] = sift_h(feat[name], feat[r])
                 H, n = paare[name, r]
-                if n > best[0]: best = (n, H, r)
+                wert = n if r[:10] == name[:10] else n * .8
+                if wert > best[0]: best = (wert, H, r)
         n, H, r = best
-        if n >= 40 and annehmen(name, np.array(res[r]["H"]) @ H, f"SIFT über {r[-14:-7]} {n}"):
+        stark = n >= (100 if r[:10] == name[:10] else 40)
+        if n >= 20 and annehmen(name, np.array(res[r]["H"]) @ H, f"SIFT über {r[:10]} {r[-14:-7]} {n:.0f}", stark):
             rest.remove(name); fortschritt = True
+# Runde 3 für kleinmaßstäbige Bilder: mehr Merkmale, lockereres Verhältnis; die Verfeinerung
+# gegen 1953 prüft das Ergebnis
+if rest:
+    sift.setNFeatures(15000)
+    f15 = {n: merkmale(*bilder[n]) for n in rest}
+    for r in res:
+        if os.path.exists(f"{SRC}/{r}.jpg"):
+            im = cv2.imread(f"{SRC}/{r}.jpg", 0); f15[r] = merkmale(im, bildmaske(im))
+    fortschritt = True
+    while rest and fortschritt:
+        fortschritt = False
+        for name in list(rest):
+            kand = sorted(((sift_h(f15[name], f15[r], 0.8), r) for r in res if r in f15 and r != name),
+                          key=lambda k: -k[0][1])[:3]
+            for (H, n), r in kand:
+                if n >= 20 and annehmen(name, np.array(res[r]["H"]) @ H, f"SIFT+ über {r[:10]} {r[-14:-7]} {n}"):
+                    rest.remove(name); fortschritt = True; break
 for name in rest: print(f"{name}: nicht registriert")
 

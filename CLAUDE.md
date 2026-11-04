@@ -20,7 +20,7 @@ Deutsch für Texte, UI und Doku.
 4. `bundle.py` – gemeinsamer Ausgleich 4071/3054 aus Passpunkten + Verknüpfungspunkten → `Hfinal.json`.
 5. `ref53.py` – 4053 aus Verknüpfungspunkten zu 4071 + eigenen Passpunkten gegen 1953 verfeinern.
 6. `mosaic45.py` – Mosaik der drei Frames.
-7. `laiv_reg.py` + `laiv_mosaik.py` – LAiV-Vorschaubilder 28.05.1944 und 08.04.1945 (`rohdaten/laiv_vorschau/`, mit `katalog.tsv`) registrieren und je Flugtag zu `app/luftbild_<Datum>.webp` (1 m/px, Alpha) mosaikieren. Feste Pfade, aus dem Projektordner starten.
+7. `laiv_reg.py` + `laiv_mosaik.py` – LAiV-Vorschaubilder (fünf Flugtage 1944, 08.04.1945) (`rohdaten/laiv_vorschau/`, mit `katalog.tsv`) registrieren und je Flugtag zu `app/luftbild_<Datum>.webp` (1 m/px, Alpha) mosaikieren. Feste Pfade, aus dem Projektordner starten.
 Ergebnis-Homographien: `georeferenz_parameter/Homographien_Frame_px_auf_Karte_m.json` (Frame-Pixel des Original-Scans → Karten-Meter).
 Restfehler: 3054 1,8 m · 4071 2,9 m · 4053 2,5 m; Maßstab 0,18–0,195 m/px.
 
