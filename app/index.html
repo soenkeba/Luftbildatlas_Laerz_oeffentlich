@@ -341,26 +341,26 @@ function tileToLL(tx,ty,z){const n=1<<z;return{lat:Math.atan(Math.sinh(Math.PI*(
 function buildGoogleTiles(container){
   container.innerHTML='';
   const nw=worldToLL(GEB.x0,GEB.y0),se=worldToLL(GEB.x0+GEB.s,GEB.y0+GEB.s);
-  const tNW=llToTile(nw.lat,nw.lon,GZOOM),tSE=llToTile(se.lat,se.lon,GZOOM);
-  // Gemeinsame Kante je Meridian/Breite, sonst bleibt zwischen den Rechtecken
-  // eine Lücke von mehreren Metern (UTM-Konvergenz, hier rund 6 m).
-  const xAt=(tx,ty)=>{
-    const top=tileToLL(tx,ty,GZOOM),bot=tileToLL(tx,ty+1,GZOOM);
-    return llToWorld((top.lat+bot.lat)/2,top.lon).x;
-  };
-  const yAt=(tx,ty)=>{
-    const left=tileToLL(tx,ty,GZOOM),right=tileToLL(tx+1,ty,GZOOM);
-    return llToWorld(left.lat,(left.lon+right.lon)/2).y;
-  };
-  const pad=.4;
-  for(let tx=Math.floor(tNW.x);tx<=Math.floor(tSE.x);tx++)
-    for(let ty=Math.floor(tNW.y);ty<=Math.floor(tSE.y);ty++){
-      const x0=xAt(tx,ty),x1=xAt(tx+1,ty),y0=yAt(tx,ty),y1=yAt(tx,ty+1);
+  const ne=worldToLL(GEB.x0+GEB.s,GEB.y0),sw=worldToLL(GEB.x0,GEB.y0+GEB.s);
+  const ecken=[nw,ne,se,sw].map(p=>llToTile(p.lat,p.lon,GZOOM));
+  const tx0=Math.floor(Math.min(...ecken.map(t=>t.x))),tx1=Math.floor(Math.max(...ecken.map(t=>t.x)));
+  const ty0=Math.floor(Math.min(...ecken.map(t=>t.y))),ty1=Math.floor(Math.max(...ecken.map(t=>t.y)));
+  // Kacheln sind gegen UTM um die Meridiankonvergenz gedreht (hier rund 1,8°, also rund 6 m je Kachel).
+  // Darum jede Kachel über ihre echten Ecken einpassen; achsparallele Rechtecke ergäben Treppenstufen.
+  const P=(tx,ty)=>{const l=tileToLL(tx,ty,GZOOM);return llToWorld(l.lat,l.lon)};
+  // Zwei Lagen: Die untere (etwas größer) füllt die Haarrisse, die beim Herauszoomen an den Kanten der oberen entstehen.
+  const TS=256;
+  for(const pad of [3,.3])for(let tx=tx0;tx<=tx1;tx++)
+    for(let ty=ty0;ty<=ty1;ty++){
+      const a=P(tx,ty),b=P(tx+1,ty),c=P(tx,ty+1);
+      const ux=b.x-a.x,uy=b.y-a.y,vx=c.x-a.x,vy=c.y-a.y;
+      const lu=Math.hypot(ux,uy),lv=Math.hypot(vx,vy),su=(lu+2*pad)/lu,sv=(lv+2*pad)/lv;
+      const ox=a.x-(ux/lu+vx/lv)*pad,oy=a.y-(uy/lu+vy/lv)*pad;
       const img=new Image();
       img.src=`https://mt${(tx+ty)%4}.google.com/vt/lyrs=s&x=${tx}&y=${ty}&z=${GZOOM}`;
       img.onerror=()=>{img.style.display='none'};
-      Object.assign(img.style,{position:'absolute',left:(x0-pad)+'px',top:(y0-pad)+'px',
-        width:(x1-x0+2*pad)+'px',height:(y1-y0+2*pad)+'px'});
+      Object.assign(img.style,{position:'absolute',left:0,top:0,width:TS+'px',height:TS+'px',maxWidth:'none',
+        transformOrigin:'0 0',transform:`matrix(${ux*su/TS},${uy*su/TS},${vx*sv/TS},${vy*sv/TS},${ox},${oy})`});
       img.alt='';img.draggable=false;
       container.appendChild(img);
     }
