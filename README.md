@@ -28,12 +28,13 @@ python3 -m http.server 8080
 | Luftbild 1991 | DOP CIR-Infrarot, GeoBasis-DE/M-V | 0,6 m/px | CC BY 4.0 |
 | Luftbild 1953 | DOP, GeoBasis-DE/M-V | 1,0 m/px | CC BY 4.0 |
 | 11.04.1945 Frames 3054, 4071, 4053 | NCAP, Sortie US7/0094/C, **hochaufgelöster Scan (gekauft)** | 0,18-0,20 m/px | (C) NCAP |
-| Luftbild 08.04.1945 | LAiV M-V, RAF 106G/5234, Mosaik aus 13 **Vorschaubildern** | ~1,7 m/px | CC BY 4.0 |
-| Luftbild 24.12.1944 | LAiV M-V, Flug 44_009, 2 **Vorschaubilder**, kleiner Maßstab | ~7 m/px | CC BY 4.0 |
-| Luftbild 13.09.1944 | LAiV M-V, Flug 44_090, 1 **Vorschaubild**, kleiner Maßstab | ~9 m/px | CC BY 4.0 |
-| Luftbild 04.08.1944 | LAiV M-V, Flug 44_023, 2 **Vorschaubilder**, kleiner Maßstab | ~9 m/px | CC BY 4.0 |
-| Luftbild 28.05.1944 | LAiV M-V, US 7GR Sortie 1619, Mosaik aus 9 **Vorschaubildern** | ~1,8 m/px | CC BY 4.0 |
-| Luftbild 10.05.1944 | LAiV M-V, Flug 44_080, 4 **Vorschaubilder**, nur Nordostrand | ~2 m/px | CC BY 4.0 |
+| Luftbild 11.04.1945 (Vorschau) | LAiV M-V, Flüge 45_149/45_150, Mosaik aus 23 **Vorschaubildern**, ergänzt die NCAP-Frames | ~0,8 m/px | CC BY 4.0 |
+| Luftbild 08.04.1945 | LAiV M-V, RAF 106G/5234, Mosaik aus 42 **Vorschaubildern** | ~1,7 m/px | CC BY 4.0 |
+| Luftbild 24.12.1944 | LAiV M-V, Flug 44_009, 1 **Vorschaubild**, kleiner Maßstab | ~7 m/px | CC BY 4.0 |
+| Luftbild 13.09.1944 | LAiV M-V, Flug 44_090, 1 **Vorschaubild**, kleiner Maßstab | ~8 m/px | CC BY 4.0 |
+| Luftbild 04.08.1944 | LAiV M-V, Flug 44_023, 1 **Vorschaubild**, kleiner Maßstab | ~9 m/px | CC BY 4.0 |
+| Luftbild 28.05.1944 | LAiV M-V, US 7GR Sortie 1619, Mosaik aus 16 **Vorschaubildern** | ~1,8 m/px | CC BY 4.0 |
+| Luftbild 10.05.1944 | LAiV M-V, Flüge 44_080/44_082, 6 **Vorschaubilder**, Norden und Osten des Gebiets | ~2 m/px | CC BY 4.0 |
 
 ### Historische Karten
 | Ebene | Quelle | Zeitraum | Lizenz |
@@ -70,43 +71,44 @@ Das LAiV M-V stellt im [Downloadportal](https://laiv.geodaten-mv.de/afgvk/Luftbi
 
 ```bash
 python3 skripte/laiv_reg.py      # Georeferenzierung -> georeferenz_parameter/LAiV_*.json
+python3 skripte/laiv_block.py 1945-04-08,1945-04-11   # Blockausgleich, ebenso 1944-05-10,1944-05-28
 python3 skripte/laiv_mosaik.py   # Mosaik je Flugtag -> app/luftbild_<Datum>.webp
 ```
 
-Start per SIFT gegen ein Mosaik der NCAP-Frames 1945 (für 1944 aus drei Handpasspunkten an Bild 2008), weitere Bilder über SIFT-Verknüpfung mit schon registrierten Bildern (auch anderer Flugtage), danach Template-Korrelation gegen DOP 1953. Die Bilder vom 10.05.1944 und Bild 7022 (24.12.1944) treffen das Arbeitsgebiet nur am Rand und sind allein über die Verknüpfung eingepasst. Restfehler je Bild 1,4-2,5 m.
+Start per SIFT gegen ein Mosaik der NCAP-Frames 1945 (für 1944 aus drei Handpasspunkten an Bild 2008), weitere Bilder über SIFT-Verknüpfung mit schon registrierten Bildern (auch anderer Flugtage), danach Template-Korrelation gegen DOP 1953.
+
+Anschließend wurden die Bilder von 1945 und Mai 1944 in einem gemeinsamen Blockausgleich neu eingepasst (`skripte/laiv_block.py`): Alle überlappenden Bilder werden direkt miteinander verknüpft, die NCAP-Frames und DOP 1953 gehen als feste Bilder ein. Das war nötig, weil die Einzelpassung gegen 1953 auf dem Flugfeld kaum Punkte fand und Nachbarbilder dort bis zu 50 m auseinanderlagen, ohne dass der Vergleich mit 1953 das zeigte. An 15 % zurückgehaltenen Punkten sank der Abstand im 90-%-Wert von 21,6 m auf 2,3 m (1945) und von 13,6 m auf 3,6 m (Mai 1944). Nachbarbilder liegen jetzt meist 1-4 m auseinander, gegen DOP 1953 meist 1-4 m. Die Übersichtsbilder von 1944 (Einzelbilder) liegen etwa 10-25 m genau. Bilder mit `"nutzen": false` in der JSON-Datei bleiben aus dem Mosaik heraus (14 von 111).
 
 ### Hochaufgelöste Scans: Bestand und Kosten
 
-Im Atlas sind nur die drei NCAP-Frames vom 11.04.1945 hochaufgelöst (0,18-0,20 m/px). Alle LAiV-Ebenen beruhen auf den freien Vorschaubildern (1536 px Kantenlänge). Ein Vollscan wäre voraussichtlich rund zehnmal feiner: etwa 0,2 m/px statt 1,7-2 m/px bei den großmaßstäbigen Flügen und etwa 1 m/px statt 7-9 m/px bei den Übersichtsaufnahmen von August bis Dezember 1944.
+Im Atlas sind nur die drei NCAP-Frames vom 11.04.1945 hochaufgelöst (0,18-0,20 m/px). Alle LAiV-Ebenen beruhen auf freien Vorschaubildern. Das LAiV nennt keine Scanauflösung. Wären seine Scans so groß wie die NCAP-Scans (rund 8000 px), wären sie etwa fünfmal feiner als die Vorschauen.
 
-**Bereits bezahlt:** 3 Scans bei der NCAP (3054, 4053, 4071) zu je 35 £, zusammen **105 £** (ca. 120 €).
+**Bereits bezahlt:** 3 Scans bei der NCAP (3054, 4053, 4071) zu je 35 £, zusammen **105 £**. Die Frames decken den Airpark ganz ab, das Fusion-Gelände zu 62 % und das Gesamtgebiet zu 37 %.
 
-**Beim LAiV M-V kaufbar** (25 € je Bild, Mindestentgelt 60 € je Auftrag; Entgeltvorschrift ab 01.01.2026):
+**Vorschlag für den Kauf beim LAiV M-V** (25 € netto je Bild, Mindestentgelt 60 € je Auftrag, Entgeltvorschrift ab 01.01.2026):
 
-| Flugtag | Bilder, die das Arbeitsgebiet zeigen | Anzahl | Kosten | Sparsatz (deckt ≥ 98 % ab) |
-|---|---|---:|---:|---|
-| 11.04.1945 | 3053, 3055, 4054 (Lücken neben den NCAP-Frames) | 3 | 75 € | alle 3 – 75 € |
-| 08.04.1945 | 3075-3080, 3093, 3094, 4079, 4091-4097 | 16 | 400 € | 3075, 3078, 3094 – 75 € |
-| 24.12.1944 | 7022-7024 | 3 | 75 € | 7023 – 25 € |
-| 13.09.1944 | 8016 | 1 | 25 € | 8016 – 25 € |
-| 04.08.1944 | 7005, 7006 | 2 | 50 € | 7005 – 25 € |
-| 28.05.1944 | 2005-2009, 2063-2066 | 9 | 225 € | 2007, 2008 – 50 € |
-| 10.05.1944 | 2028-2031 (nur Nordostrand) | 4 | 100 € | 2028, 2031 – 50 € |
-| **Summe** | | **38** | **950 €** | **13 Bilder – 325 €** |
+| Stand | Bilder | Anzahl | Netto |
+|---|---|---:|---:|
+| 11.04.1945, nach dem Angriff | 4070, 3056, 4069 | 3 | 75 € |
+| 08.04.1945, vor dem Angriff | 3094, 3079, 3098 | 3 | 75 € |
+| 28.05.1944 | 2008, 2009 | 2 | 50 € |
+| 26.08.1990 | 90_235_10_0012, 90_235_11_0037 | 2 | 50 € |
+| 23.04.1995 | 95_04_18_0993 | 1 | 25 € |
+| **Vorschlag** | | **11** | **275 €** (327,25 € brutto) |
 
-Der Sparsatz wurde aus den Bildumrissen berechnet. Er deckt das Gebiet ab, liegt dann aber stellenweise am Bildrand. Den ganzen LAiV-Katalog für Lärz 1944/45 zu kaufen (83 Bilder, abzüglich der drei schon vorhandenen Frames vom 11.04.1945), kostet 80 × 25 € = **2.000 €**. Dabei sind auch Bilder ohne Anteil am Arbeitsgebiet.
+Optional: 11.04.1945 Ostteil (3075, 4055), 08.04.1945 Umland (3076, 3091), Übersichten 1944 (7023, 8016, 7005), 1999 und 2002 (je 1 Bild), zusammen 9 Bilder für 225 € netto. Den ganzen Katalog über dem Gesamtgebiet zu kaufen (130 Kriegs- und 125 Nachkriegsbilder), kostet 6.375 € netto und wiederholt meist dieselbe Fläche.
 
-Mögliche Zuschläge:
+Mögliche Zuschläge und offene Punkte:
 
 - Muss ein Bild erst gescannt werden, kommen 13-14 € je Bild hinzu, bei schwierigen Vorlagen 50 % mehr.
-- Gekaufte Daten unterliegen den AGNB. Für eine öffentliche Weitergabe bearbeiteter Folgeprodukte kann eine jährliche Lizenzgebühr anfallen (100-300 % des Entgelts). Das sollte vor einem Kauf mit dem LAiV geklärt werden.
-
-Die Frames 3053, 3055 und 4054 bietet auch die NCAP an (35 £ je Bild). Das LAiV ist günstiger.
+- Die Entgeltvorschrift (Nr. 3.2.1) nennt die externe Nutzung als enthalten, die AGNB (Nr. 7.2.2) begrenzen Internet-Veröffentlichungen auf zehn Bilder mit je 1 Megapixel. Für Unterlizenzen fällt jährlich 100-300 % des Entgelts an (Nr. 3.2.3). Das ist vor dem Kauf mit dem LAiV zu klären.
+- Die NCAP nennt für Scans auf Bestellung derzeit 55 £ netto je Bild plus 4 £ je Filmdose, dazu eine Lizenz (nicht kommerzielle Website: 11 £ für 5 Jahre).
+- Orthophotos der Jahrgänge 1953, 1991 und ab 2002 sind über Download- und Darstellungsdienst des LAiV kostenlos (CC BY 4.0).
 
 ## Koordinatensystem
 
 - ETRS89 / UTM Zone 33N (EPSG:25833)
-- Arbeitsgebiet: E 348.600-351.000, N 5.906.700-5.909.100 (2.400 x 2.400 m)
+- Gesamtgebiet: E 348.200-352.000, N 5.906.700-5.910.500 (3.800 x 3.800 m), umfasst den ganzen Flugplatz einschließlich Fusion-Gelände
 - Interne Karten-Koordinaten: x = E - 348.600, y = 5.909.100 - N (y nach unten, 1 Einheit = 1 m)
 
 ## Bilder aktualisieren

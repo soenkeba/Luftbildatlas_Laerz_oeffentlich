@@ -9,9 +9,9 @@ Deutsch für Texte, UI und Doku.
 
 ## Koordinaten
 - Bezugssystem überall ETRS89 / UTM Zone 33N (EPSG:25833).
-- Interne „Karten-Meter": `x = E − 348600`, `y = 5909100 − N` (y nach unten). Arbeitsgebiet 2400 × 2400 m.
-- `r53.jpg` (DOP 1953) hat 1 m/px mit Ursprung genau dort → Pixel = Karten-Meter.
-- `rnow.jpg`/`alkis.png`: 0,6 m/px, gleicher Ursprung.
+- Interne „Karten-Meter": `x = E − 348600`, `y = 5909100 − N` (y nach unten). Ursprung bleibt unverändert. Gesamtgebiet 3800 × 3800 m: x −400…3400, y −1400…2400 (ganzer Flugplatz mit Fusion-Gelände). Standardansicht bleibt der Airpark.
+- `app/dop_1953.jpg` und die anderen Vollbild-Ebenen: 3800 px, 1 m/px, Ursprung x −400, y −1400.
+- `app/kacheln/<dop_heute|dop_1991|alkis>/`: 4 × 4 Kacheln mit 0,6 m/px, laden nur im Sichtfenster.
 
 ## Pipeline (skripte/)
 1. `fetch_geobasis.py` – DOP heute, DOP 1953, ALKIS per WMS laden.
@@ -20,7 +20,7 @@ Deutsch für Texte, UI und Doku.
 4. `bundle.py` – gemeinsamer Ausgleich 4071/3054 aus Passpunkten + Verknüpfungspunkten → `Hfinal.json`.
 5. `ref53.py` – 4053 aus Verknüpfungspunkten zu 4071 + eigenen Passpunkten gegen 1953 verfeinern.
 6. `mosaic45.py` – Mosaik der drei Frames.
-7. `laiv_reg.py` + `laiv_mosaik.py` – LAiV-Vorschaubilder (fünf Flugtage 1944, 08.04.1945) (`rohdaten/laiv_vorschau/`, mit `katalog.tsv`) registrieren und je Flugtag zu `app/luftbild_<Datum>.webp` (1 m/px, Alpha) mosaikieren. Feste Pfade, aus dem Projektordner starten.
+7. `laiv_reg.py` + `laiv_mosaik.py` – LAiV-Vorschaubilder (Kriegsflüge 1944/45) (`rohdaten/laiv_vorschau/`, mit `katalog.tsv`) registrieren und je Flugtag zu `app/luftbild_<Datum>.webp` (1 m/px, Alpha) mosaikieren. Feste Pfade, aus dem Projektordner starten. Danach `laiv_block.py <Tage>`: gemeinsamer Blockausgleich überlappender Bilder (feste Bilder NCAP + DOP 1953), nötig, weil Einzelpassung gegen 1953 auf dem Flugfeld bis 50 m Nahtversatz ließ. **Kontrolle immer auch zwischen Nachbarbildern und per Sichtprüfung der Bahnen, nicht nur gegen 1953.** Bilder mit `"nutzen": false` im JSON bleiben aus dem Mosaik heraus. Nach neu gerechneten Bildern `BILDSTAND` in `app/index.html` hochzählen (Cache).
 Ergebnis-Homographien: `georeferenz_parameter/Homographien_Frame_px_auf_Karte_m.json` (Frame-Pixel des Original-Scans → Karten-Meter).
 Restfehler: 3054 1,8 m · 4071 2,9 m · 4053 2,5 m; Maßstab 0,18–0,195 m/px.
 

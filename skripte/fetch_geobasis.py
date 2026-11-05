@@ -1,15 +1,20 @@
 """Lädt Kartenebenen für den Luftbildatlas Lärz per WMS.
-Arbeitsgebiet: E 348600–351000, N 5906700–5909100 (EPSG:25833), 2400 × 2400 m.
+Gesamtgebiet (ganzer Flugplatz mit Fusion-Gelände): E 348200–352000, N 5906700–5910500
+(EPSG:25833), 3800 × 3800 m, in Karten-Metern x −400…3400, y −1400…2400.
 Ausgabe nach app/. Alle Dienste sind frei nutzbar (CC BY 4.0 bzw. dl-de/by-2-0).
+DOP heute, DOP 1991 und ALKIS (0,6 m/px) liegen als 4 × 4 Kacheln in app/kacheln/<Name>/<Spalte>_<Zeile>.*,
+damit das Handy nur den sichtbaren Teil laden muss. Der WMS erlaubt höchstens 4192 px je Abruf.
 
 Nutzung (aus dem Projektordner):
   python3 skripte/fetch_geobasis.py           # Alles herunterladen
   python3 skripte/fetch_geobasis.py --update  # Nur Sentinel-2 aktualisieren
 """
 import subprocess, os, sys
+import numpy as np, cv2
 
 os.makedirs("app", exist_ok=True)
-B = "348600,5906700,351000,5909100"
+E0, N0, E1, N1, GROESSE = 348200, 5906700, 352000, 5910500, 3800
+B = f"{E0},{N0},{E1},{N1}"
 UPDATE_ONLY = "--update" in sys.argv
 
 def get(url, out):
@@ -21,13 +26,36 @@ def get(url, out):
     else:
         print("FEHLER" if r.returncode else f"zu klein ({os.path.getsize(path)} B) – Layer evtl. leer?")
 
-def mv(svc, layer, out, w=2400, fmt="image/jpeg", style="", extra=""):
+def kacheln(svc, layer, name, fmt="image/jpeg", style="", extra="", n=4, mpx=0.6):
+    """Je Kachel mit Rand abrufen und den Rand abschneiden: entfernt den Copyright-Stempel des
+    Dienstes aus dem Bildinneren und vermeidet abgeschnittene Beschriftungen an den Kanten."""
+    os.makedirs(f"app/kacheln/{name}", exist_ok=True)
+    seite = GROESSE / n; rand_m = 60; rand = round(rand_m / mpx); px = round(seite / mpx)
+    endung = "png" if "png" in fmt else "jpg"; gesamt = 0
+    print(f"  kacheln/{name} ...", end=" ", flush=True)
+    for sp in range(n):
+        for ze in range(n):
+            e = E0 + sp * seite; nord = N1 - ze * seite
+            bb = f"{e - rand_m},{nord - seite - rand_m},{e + seite + rand_m},{nord + rand_m}"
+            url = (f"https://www.geodaten-mv.de/dienste/{svc}?SERVICE=WMS&VERSION=1.3.0&REQUEST=GetMap"
+                   f"&LAYERS={layer}&STYLES={style}&CRS=EPSG:25833&BBOX={bb}&WIDTH={px + 2 * rand}&HEIGHT={px + 2 * rand}"
+                   f"&FORMAT={fmt}{extra}")
+            roh = subprocess.run(["curl", "-s", "-m", "300", url], capture_output=True).stdout
+            im = cv2.imdecode(np.frombuffer(roh, np.uint8), cv2.IMREAD_UNCHANGED)
+            if im is None: sys.exit(f"FEHLER: {name} {sp}_{ze}: {roh[:200]!r}")
+            pfad = f"app/kacheln/{name}/{sp}_{ze}.{endung}"
+            im = im[rand:rand + px, rand:rand + px]
+            cv2.imwrite(pfad, im, [cv2.IMWRITE_JPEG_QUALITY, 80] if endung == "jpg" else [cv2.IMWRITE_PNG_COMPRESSION, 9])
+            gesamt += os.path.getsize(pfad)
+    print(f"OK ({gesamt // 1024} kB)")
+
+def mv(svc, layer, out, w=GROESSE, fmt="image/jpeg", style="", extra=""):
     """WMS-Request an geodaten-mv.de."""
     get(f"https://www.geodaten-mv.de/dienste/{svc}?SERVICE=WMS&VERSION=1.3.0&REQUEST=GetMap"
         f"&LAYERS={layer}&STYLES={style}&CRS=EPSG:25833&BBOX={B}&WIDTH={w}&HEIGHT={w}"
         f"&FORMAT={fmt}{extra}", out)
 
-def ext(base, svc, layer, out, w=2400, fmt="image/jpeg", extra=""):
+def ext(base, svc, layer, out, w=GROESSE, fmt="image/jpeg", extra=""):
     """WMS-Request an externen Server (BKG, basemap.de)."""
     get(f"{base}/{svc}?SERVICE=WMS&VERSION=1.3.0&REQUEST=GetMap"
         f"&LAYERS={layer}&STYLES=&CRS=EPSG:25833&BBOX={B}&WIDTH={w}&HEIGHT={w}"
@@ -38,11 +66,11 @@ BKG = "https://sgx.geodatenzentrum.de"
 if not UPDATE_ONLY:
     # ── GeoBasis-DE/M-V  (© GeoBasis-DE/M-V, CC BY 4.0) ──────────────
     print("\n── GeoBasis-DE/M-V ──")
-    mv("adv_dop",    "mv_dop",     "dop_heute.jpg", 4000)          # DOP aktuell, 0,6 m/px
-    mv("dop1991_wms","mv_dop1991", "dop_1991.jpg",  4000)          # DOP 1991 (CIR), 0,6 m/px
+    kacheln("adv_dop",    "mv_dop",     "dop_heute")               # DOP aktuell, 0,6 m/px
+    kacheln("dop1991_wms","mv_dop1991", "dop_1991")                # DOP 1991 (CIR), 0,6 m/px
     mv("dop1953_wms","mv_dop1953", "dop_1953.jpg")                 # DOP 1953, 1,0 m/px
-    mv("alkis_wms",  "adv_alkis_flurstuecke,adv_alkis_gebaeude",
-       "alkis.png", 4000, "image/png", "Gelb,Gelb", "&TRANSPARENT=TRUE")
+    kacheln("alkis_wms",  "adv_alkis_flurstuecke,adv_alkis_gebaeude", "alkis",
+            "image/png", "Gelb,Gelb", "&TRANSPARENT=TRUE")
 
     # Topographische Karten
     mv("tk25m_laiv_wms", "mv_tk25m",  "tk25_messtisch.jpg")        # Messtischblatt 1877–1943
@@ -50,7 +78,7 @@ if not UPDATE_ONLY:
     mv("adv_dtk25",      "mv_dtk25",  "dtk25.jpg")                # DTK25 aktuell
 
     # Geländemodell (Schummerung)
-    mv("dgm_wms", "schummerung_NW", "dgm.png", 2400, "image/png", "", "&TRANSPARENT=TRUE")
+    mv("dgm_wms", "schummerung_NW", "dgm.png", GROESSE, "image/png", "", "&TRANSPARENT=TRUE")
 
     # ── BKG  (© BKG, dl-de/by-2-0) ────────────────────────────────────
     print("\n── BKG ──")

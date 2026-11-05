@@ -11,7 +11,7 @@ Ehemaliger Fliegerhorst Lärz (heute Müritz Airpark). Alliierte Aufklärungsfot
 Genauigkeit: Restfehler der Entzerrung 1,4–2,9 m gegenüber dem Luftbild 1953.
 
 Hochaufgelöst sind nur die drei NCAP-Frames vom 11.04.1945. Sie wurden für 3 × 35 £ = 105 £ gekauft. Alle LAiV-Ebenen sind freie Vorschauen.
-Die Vollscans aller 38 LAiV-Bilder, die das Gebiet zeigen, würden 950 € kosten (25 € je Bild). Ein Sparsatz aus 13 Bildern deckt das Gebiet für 325 € ab. Die Aufstellung steht in der README.
+Ein Kaufvorschlag beim LAiV umfasst 11 Bilder für 275 € netto (25 € je Bild), mit allen Optionen 20 Bilder für 500 € netto; Einzelheiten stehen in der README.
 
 Die heutige Startbahn wurde nach 1945 umgebaut und deckt sich deshalb nicht mit der Kriegsanlage.
 

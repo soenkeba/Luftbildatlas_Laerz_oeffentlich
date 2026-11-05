@@ -2,7 +2,7 @@
 
 Eingabe:  georeferenz_parameter/LAiV_Homographien_Vorschau_px_auf_Karte_m.json (laiv_reg.py)
           rohdaten/laiv_vorschau/*.jpg
-Ausgabe:  app/luftbild_<Datum>.webp (2400 × 2400 px, 1 m/px, Ursprung wie DOP 1953)
+Ausgabe:  app/luftbild_<Datum>.webp (3800 × 3800 px, 1 m/px, Ursprung wie DOP 1953: x = -400, y = -1400)
 
 Je Kartenpixel wird das Bild genommen, in dem der Punkt am nächsten zur Bildmitte
 liegt (geringste Verkippung/Verzeichnung). Nicht abgedeckte Flächen sind transparent.
@@ -12,15 +12,16 @@ Nutzung (aus dem Projektordner):  python3 skripte/laiv_mosaik.py
 import numpy as np, cv2, json
 
 SRC = "rohdaten/laiv_vorschau"
-W = 2400
+W, X0, Y0 = 3800, -400, -1400
 res = json.load(open("georeferenz_parameter/LAiV_Homographien_Vorschau_px_auf_Karte_m.json"))
 cl = cv2.createCLAHE(1.5, (8, 8))
-yy, xx = np.mgrid[0:W, 0:W].astype(np.float32)
+yy, xx = np.mgrid[Y0:Y0 + W, X0:X0 + W].astype(np.float32)
 
-for datum in sorted({n[:10] for n in res}):
+# Bilder mit "nutzen": false haben die Lagekontrolle nicht bestanden und bleiben draußen.
+for datum in sorted({n[:10] for n, r in res.items() if r.get("nutzen", True)}):
     mos = np.zeros((W, W), np.uint8); best = np.full((W, W), np.inf, np.float32); teile = []
     for name, r in sorted(res.items()):
-        if name[:10] != datum: continue
+        if name[:10] != datum or not r.get("nutzen", True): continue
         im = cl.apply(cv2.imread(f"{SRC}/{name}.jpg", 0))
         H = np.array(r["H"]); x0, y0, x1, y1 = r["clip"]
         # Karten-m -> Bild-px, normierter Abstand zur Bildmitte (Chebyshev)

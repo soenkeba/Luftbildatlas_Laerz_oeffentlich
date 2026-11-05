@@ -1,7 +1,7 @@
 """Georeferenzierung der LAiV-Vorschaubilder (historische Luftbilder 1944/45).
 
 Eingabe:  rohdaten/laiv_vorschau/*.jpg  (Dateiname: <Datum>_<Bildname>.jpg)
-          app/dop_1953.jpg               (1 m/px, Pixel = Karten-Meter)
+          app/dop_1953.jpg               (1 m/px, Pixel = Karten-Meter + (400, 1400))
           app/f3054.jpg, f4053.jpg, f4071.jpg + Homographien (NCAP 11.04.1945)
 Ausgabe:  georeferenz_parameter/LAiV_Homographien_Vorschau_px_auf_Karte_m.json
 
@@ -37,6 +37,8 @@ def bildmaske(im):
     return m
 
 R = prep(ref)
+# Referenz-Pixel <-> Karten-Meter (Gesamtgebiet beginnt bei x = -400, y = -1400); gespeichert wird in Karten-Metern
+T = np.array([[1., 0, 400], [0, 1, 1400], [0, 0, 1]]); Ti = np.linalg.inv(T)
 
 # Handpasspunkte (Vorschau-px -> Karten-m) für Bilder, bei denen SIFT gegen 1945 scheitert:
 # Rollbahnkreuz, SO-Ende der NW-SO-Bahn, W-Ende der SW-NO-Bahn
@@ -49,7 +51,7 @@ CLIP = {"4071": (320, 240, 3690, 3615), "4053": (235, 260, 3615, 3570), "3054": 
 ref45 = np.zeros((Hh, Ww), np.uint8); m45 = np.zeros((Hh, Ww), np.uint8)
 for n, c in CLIP.items():
     f = cv2.imread(f"app/f{n}.jpg", 0); fm = np.zeros_like(f); fm[c[1]:c[3], c[0]:c[2]] = 255
-    H = np.array(HN[n]) @ np.diag([2., 2., 1.])
+    H = T @ np.array(HN[n]) @ np.diag([2., 2., 1.])
     w = cv2.warpPerspective(f, H, (Ww, Hh), flags=cv2.INTER_AREA)
     wm = cv2.warpPerspective(fm, H, (Ww, Hh), flags=cv2.INTER_NEAREST)
     sel = (wm > 0) & (m45 == 0); ref45[sel] = w[sel]; m45[sel] = 255
@@ -119,7 +121,7 @@ def annehmen(name, H, wie, stark=False):
     """stark: Start-H aus sehr gutem SIFT-Verbund; gilt auch ohne Verfeinerung, wenn das Bild
     das Arbeitsgebiet nur am Rand trifft (zu wenig Fläche für Passpunkte gegen 1953)."""
     im, m = bilder[name]
-    H0 = H; H, rmse, n = verfeinern(im, m, H)
+    H0 = H; H, rmse, n = verfeinern(im, m, T @ H); H = Ti @ H
     if rmse is None or n < 12 or rmse > 4.0:
         if not stark:
             print(f"{name}: verworfen ({wie}, {n} Passpunkte, Restfehler {rmse})"); return False
@@ -140,9 +142,12 @@ def annehmen(name, H, wie, stark=False):
 
 # Runde 1: gegen NCAP-Mosaik; Runde 2+: gegen schon registrierte Bilder (bevorzugt desselben Tages)
 rest = []
+alt = dict(res)
 for name in offen:
+    # Bereits registrierte Bilder: alte Homographie als Start, neu gegen das ganze Gebiet verfeinern
+    if name in alt and annehmen(name, np.array(alt[name]["H"]), "Start aus früherem Lauf"): continue
     H, n = sift_h(feat[name], K45)
-    if H is not None and n >= 30 and annehmen(name, H, f"SIFT 1945 {n}"): continue
+    if H is not None and n >= 30 and annehmen(name, Ti @ H, f"SIFT 1945 {n}"): continue
     if name in HAND:
         A, _ = cv2.estimateAffinePartial2D(np.float32(HAND[name][0]), np.float32(HAND[name][1]))
         if annehmen(name, np.vstack([A, [0, 0, 1]]), "Handpasspunkte"): continue
